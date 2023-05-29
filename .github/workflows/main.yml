@@ -49,8 +49,8 @@ jobs:
         
     - name: Create Transcoding Yml
       run: |
-        echo "${{secrets.APPLICATION_TRANSCODING_YML}}" | base64 --decode > Transcoding/src/main/resources/application.yml
-        find Transcoding/src
+        echo "${{secrets.APPLICATION_TRANSCODING_YML}}" | base64 --decode > TranscodingService/src/main/resources/application.yml
+        find TranscodingService/src
 
     - name: Build with Gradle
       run: ./gradlew test
