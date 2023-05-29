@@ -34,22 +34,22 @@ jobs:
         
     - name: Create AuthService Yml
       run: |
-        echo "${{secrets.APPLICATION_AUTH_YML}}" | base64 --decode > AuthService/src/main/resources/application.yml
+        echo "${{secrets.APPLICATION_AUTH_YML}}" | base64 --decode > AuthService/src/main/resources/application.properties
         find AuthService/src
         
     - name: Create ContentService Yml
       run: |
-        echo "${{secrets.APPLICATION_CONTENT_YML}}" | base64 --decode > ContentService/src/main/resources/application.yml
+        echo "${{secrets.APPLICATION_CONTENT_YML}}" | base64 --decode > ContentService/src/main/resources/application.properties
         find ContentService/src  
         
     - name: Create StreamingService Yml
       run: |
-        echo "${{secrets.APPLICATION_STREAMING_YML}}" | base64 --decode > StreamingService/src/main/resources/application.yml
+        echo "${{secrets.APPLICATION_STREAMING_YML}}" | base64 --decode > StreamingService/src/main/resources/application.properties
         find StreamingService/src
         
     - name: Create Transcoding Yml
       run: |
-        echo "${{secrets.APPLICATION_TRANSCODING_YML}}" | base64 --decode > TranscodingService/src/main/resources/application.yml
+        echo "${{secrets.APPLICATION_TRANSCODING_YML}}" | base64 --decode > TranscodingService/src/main/resources/application.properties
         find TranscodingService/src
 
     - name: Build with Gradle
