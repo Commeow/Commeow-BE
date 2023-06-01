@@ -71,28 +71,28 @@ public abstract class RtmpServer implements CommandLineRunner {
                                 .bodyToMono(Boolean.class)
                                 .retryWhen(Retry.fixedDelay(3, Duration.ofMillis(500)))
                                 .doOnError(error -> log.info(error.getMessage()))
-                                .onErrorReturn(Boolean.FALSE)
+                                .onErrorReturn(Boolean.FALSE) // FALSE로 바꿔야 한다..!
                                 .flatMap(ans -> {
                                     log.info("Member {} stream key validation", stream.getStreamName());
-//                                    if (ans) {
-//                                        stream.sendPublishMessage();
-//                                        stream.getReadyToBroadcast().thenRun(() -> webClient
-//                                                .get()
-//                                                .uri(transcodingAddress + "/ffmpeg/" + stream.getStreamName())
-//                                                .retrieve()
-//                                                .bodyToMono(Long.class)
-////                                                .delaySubscription(Duration.ofSeconds(10L))
-//                                                .retryWhen(Retry.fixedDelay(3, Duration.ofMillis(1000)))
-//                                                .doOnError(error -> {
-//                                                    log.info("Error occured on transcoding server " + error.getMessage());
-//                                                    stream.closeStream();
-//                                                    stream.getPublisher().disconnect();
-//                                                })
-//                                                .onErrorComplete()
-//                                                .subscribe((s) -> log.info("Transcoding server started ffmpeg with pid " + s.toString())));
-//                                    } else {
-//                                        stream.getPublisher().disconnect();
-//                                    }
+                                    if (ans) {
+                                        stream.sendPublishMessage();
+                                        stream.getReadyToBroadcast().thenRun(() -> webClient
+                                                .get()
+                                                .uri(transcodingAddress + "/ffmpeg/" + stream.getStreamName())
+                                                .retrieve()
+                                                .bodyToMono(Long.class)
+//                                                .delaySubscription(Duration.ofSeconds(10L))
+                                                .retryWhen(Retry.fixedDelay(3, Duration.ofMillis(1000)))
+                                                .doOnError(error -> {
+                                                    log.info("Error occured on transcoding server " + error.getMessage());
+                                                    stream.closeStream();
+                                                    stream.getPublisher().disconnect();
+                                                })
+                                                .onErrorComplete()
+                                                .subscribe((s) -> log.info("Transcoding server started ffmpeg with pid " + s.toString())));
+                                    } else {
+                                        stream.getPublisher().disconnect();
+                                    }
                                     return Mono.empty();
                                 }))
                         .then())

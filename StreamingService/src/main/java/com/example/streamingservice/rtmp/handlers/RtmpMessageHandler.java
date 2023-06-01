@@ -12,8 +12,11 @@ import io.netty.handler.codec.MessageToMessageDecoder;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.example.streamingservice.rtmp.model.messages.RtmpConstants.*;
 
@@ -73,8 +76,17 @@ public class RtmpMessageHandler extends MessageToMessageDecoder<RtmpMessage> {
     private void onConnect(ChannelHandlerContext ctx, List<Object> message) {
         log.info("Client connection from {}, channel id is {}", ctx.channel().remoteAddress(), ctx.channel().id());
 
-        String app = (String) ((Map<String, Object>) message.get(2)).get("app");
-        Integer clientEncodingFormat = (Integer) ((Map<String, Object>) message.get(2)).get("objectEncoding");
+        Pattern pattern = Pattern.compile("([^{,]+)=([^,]+)(,\\s*|$)");
+        Matcher matcher = pattern.matcher(message.get(2).toString());
+
+        Map<String, Object> resultMap = new HashMap<>();
+        while (matcher.find()) {
+            resultMap.put(matcher.group(1).trim(), matcher.group(2));
+        }
+
+        String app = (String) resultMap.get("app");
+        Integer clientEncodingFormat = (Integer) resultMap.getOrDefault("objectEncoding", 0);
+
 
         if (clientEncodingFormat != null && clientEncodingFormat == 3) {
             log.error("AMF3 format is not supported. Closing connection to {}", ctx.channel().remoteAddress());
@@ -110,7 +122,7 @@ public class RtmpMessageHandler extends MessageToMessageDecoder<RtmpMessage> {
         info.put("objectEncoding", 0);
 
         result.add("_result");
-        result.add(message.get(10)); //transaction id
+        result.add(message.get(1)); //transaction id
         result.add(cmdObj);
         result.add(info);
 
