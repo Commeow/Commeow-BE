@@ -1,4 +1,4 @@
-package com.example.streamingservice.model.messages;
+package com.example.streamingservice.rtmp.model.messages;
 
 import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;

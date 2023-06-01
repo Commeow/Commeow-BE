@@ -1,12 +1,12 @@
-package com.example.streamingservice.handlers;
+package com.example.streamingservice.rtmp.handlers;
 
-import com.example.streamingservice.model.messages.RtmpMessage;
+import com.example.streamingservice.rtmp.model.messages.RtmpMessage;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 import lombok.extern.slf4j.Slf4j;
 
-import static com.example.streamingservice.model.messages.RtmpConstants.*;
+import static com.example.streamingservice.rtmp.model.messages.RtmpConstants.*;
 
 @Slf4j
 public class ChunkEncoder extends MessageToByteEncoder<RtmpMessage> {

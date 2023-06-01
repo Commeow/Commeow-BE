@@ -1,6 +1,6 @@
-package com.example.streamingservice.handlers;
+package com.example.streamingservice.rtmp.handlers;
 
-import com.example.streamingservice.model.messages.RtmpConstants;
+import com.example.streamingservice.rtmp.model.messages.RtmpConstants;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;

@@ -1,9 +1,9 @@
-package com.example.streamingservice.model.util;
+package com.example.streamingservice.rtmp.model.util;
 
-import com.example.streamingservice.model.messages.RtmpConstants;
-import com.example.streamingservice.model.messages.RtmpHeader;
+import com.example.streamingservice.rtmp.model.messages.RtmpConstants;
+import com.example.streamingservice.rtmp.model.messages.RtmpHeader;
 
-import static com.example.streamingservice.model.messages.RtmpConstants.*;
+import static com.example.streamingservice.rtmp.model.messages.RtmpConstants.*;
 
 public class HeaderProvider {
 

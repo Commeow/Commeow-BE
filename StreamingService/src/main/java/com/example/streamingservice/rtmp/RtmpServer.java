@@ -1,8 +1,8 @@
 package com.example.streamingservice.rtmp;
 
-import com.example.streamingservice.entity.Member;
-import com.example.streamingservice.handlers.*;
-import com.example.streamingservice.model.context.Stream;
+import com.example.streamingservice.rtmp.entity.Member;
+import com.example.streamingservice.rtmp.handlers.*;
+import com.example.streamingservice.rtmp.model.context.Stream;
 import io.netty.channel.ChannelOption;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.netty.DisposableServer;
@@ -27,7 +26,6 @@ import java.time.Duration;
 @Getter
 @Setter
 @Slf4j
-@Component
 public abstract class RtmpServer implements CommandLineRunner {
 
     protected abstract RtmpMessageHandler getRtmpMessageHandler();
@@ -48,7 +46,7 @@ public abstract class RtmpServer implements CommandLineRunner {
     @Override
     public void run(String... args) {
         DisposableServer server = TcpServer.create()
-                //.host("0.0.0.0")
+//                .host("0.0.0.0")
                 .port(1935)
                 .doOnBound(disposableServer ->
                         log.info("RTMP server started on port {}", disposableServer.port()))
@@ -76,25 +74,25 @@ public abstract class RtmpServer implements CommandLineRunner {
                                 .onErrorReturn(Boolean.FALSE)
                                 .flatMap(ans -> {
                                     log.info("Member {} stream key validation", stream.getStreamName());
-                                    if (ans) {
-                                        stream.sendPublishMessage();
-                                        stream.getReadyToBroadcast().thenRun(() -> webClient
-                                                .get()
-                                                .uri(transcodingAddress + "/ffmpeg/" + stream.getStreamName())
-                                                .retrieve()
-                                                .bodyToMono(Long.class)
-//                                                .delaySubscription(Duration.ofSeconds(10L))
-                                                .retryWhen(Retry.fixedDelay(3, Duration.ofMillis(1000)))
-                                                .doOnError(error -> {
-                                                    log.info("Error occured on transcoding server " + error.getMessage());
-                                                    stream.closeStream();
-                                                    stream.getPublisher().disconnect();
-                                                })
-                                                .onErrorComplete()
-                                                .subscribe((s) -> log.info("Transcoding server started ffmpeg with pid " + s.toString())));
-                                    } else {
-                                        stream.getPublisher().disconnect();
-                                    }
+//                                    if (ans) {
+//                                        stream.sendPublishMessage();
+//                                        stream.getReadyToBroadcast().thenRun(() -> webClient
+//                                                .get()
+//                                                .uri(transcodingAddress + "/ffmpeg/" + stream.getStreamName())
+//                                                .retrieve()
+//                                                .bodyToMono(Long.class)
+////                                                .delaySubscription(Duration.ofSeconds(10L))
+//                                                .retryWhen(Retry.fixedDelay(3, Duration.ofMillis(1000)))
+//                                                .doOnError(error -> {
+//                                                    log.info("Error occured on transcoding server " + error.getMessage());
+//                                                    stream.closeStream();
+//                                                    stream.getPublisher().disconnect();
+//                                                })
+//                                                .onErrorComplete()
+//                                                .subscribe((s) -> log.info("Transcoding server started ffmpeg with pid " + s.toString())));
+//                                    } else {
+//                                        stream.getPublisher().disconnect();
+//                                    }
                                     return Mono.empty();
                                 }))
                         .then())

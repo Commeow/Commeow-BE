@@ -1,4 +1,4 @@
-package com.example.streamingservice.model.context;
+package com.example.streamingservice.rtmp.model.context;
 
 import java.util.concurrent.ConcurrentHashMap;
 

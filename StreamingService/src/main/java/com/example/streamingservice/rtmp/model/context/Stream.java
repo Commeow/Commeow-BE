@@ -1,8 +1,9 @@
-package com.example.streamingservice.model.context;
+package com.example.streamingservice.rtmp.model.context;
 
-import com.example.streamingservice.model.messages.RtmpMediaMessage;
-import com.example.streamingservice.model.messages.RtmpMessage;
-import com.example.streamingservice.model.util.MessageProvider;
+import com.example.streamingservice.rtmp.model.messages.RtmpMediaMessage;
+import com.example.streamingservice.rtmp.model.messages.RtmpMessage;
+import com.example.streamingservice.rtmp.model.util.MessageProvider;
+import com.example.streamingservice.rtmp.model.messages.RtmpConstants;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import lombok.Getter;
@@ -16,8 +17,6 @@ import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
-
-import static com.example.streamingservice.model.messages.RtmpConstants.*;
 
 @Getter
 @Setter
@@ -49,12 +48,12 @@ public class Stream {
     public void addMedia(RtmpMediaMessage message) {
         short type = message.header().getType();
 
-        if (type == (short) RTMP_MSG_USER_CONTROL_TYPE_AUDIO) {
+        if (type == (short) RtmpConstants.RTMP_MSG_USER_CONTROL_TYPE_AUDIO) {
             if (message.isAudioConfig()) {
                 log.info("Audio config is set");
                 audioConfig = message;
             }
-        } else if (type == (short) RTMP_MSG_USER_CONTROL_TYPE_VIDEO) {
+        } else if (type == (short) RtmpConstants.RTMP_MSG_USER_CONTROL_TYPE_VIDEO) {
             if (message.isVideoConfig()) {
                 log.info("Video config is set");
                 videoConfig = message;
@@ -100,7 +99,7 @@ public class Stream {
 
     public void closeStream() {
         log.info("Closing stream");
-        RtmpMessage eof = MessageProvider.userControlMessageEvent(STREAM_EOF);
+        RtmpMessage eof = MessageProvider.userControlMessageEvent(RtmpConstants.STREAM_EOF);
         for (Channel channel:subscribers) {
             channel.writeAndFlush(eof).addListener(ChannelFutureListener.CLOSE);
         }

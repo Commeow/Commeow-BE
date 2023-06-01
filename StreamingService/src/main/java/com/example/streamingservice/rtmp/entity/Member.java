@@ -1,4 +1,4 @@
-package com.example.streamingservice.entity;
+package com.example.streamingservice.rtmp.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

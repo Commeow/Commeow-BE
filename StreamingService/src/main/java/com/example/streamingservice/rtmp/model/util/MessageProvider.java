@@ -1,16 +1,15 @@
-package com.example.streamingservice.model.util;
+package com.example.streamingservice.rtmp.model.util;
 
-import com.example.streamingservice.amf0.Amf0Rules;
-import com.example.streamingservice.model.messages.RtmpHeader;
-import com.example.streamingservice.model.messages.RtmpMediaMessage;
-import com.example.streamingservice.model.messages.RtmpMessage;
+import com.example.streamingservice.rtmp.amf0.Amf0Rules;
+import com.example.streamingservice.rtmp.model.messages.RtmpHeader;
+import com.example.streamingservice.rtmp.model.messages.RtmpMessage;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.streamingservice.model.messages.RtmpConstants.RTMP_DEFAULT_MESSAGE_STREAM_ID_VALUE;
+import static com.example.streamingservice.rtmp.model.messages.RtmpConstants.RTMP_DEFAULT_MESSAGE_STREAM_ID_VALUE;
 
 public class MessageProvider {
 

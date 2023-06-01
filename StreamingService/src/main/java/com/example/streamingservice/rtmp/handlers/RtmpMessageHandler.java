@@ -1,11 +1,11 @@
-package com.example.streamingservice.handlers;
+package com.example.streamingservice.rtmp.handlers;
 
-import com.example.streamingservice.amf0.Amf0Rules;
-import com.example.streamingservice.model.context.Stream;
-import com.example.streamingservice.model.context.StreamContext;
-import com.example.streamingservice.model.messages.RtmpMediaMessage;
-import com.example.streamingservice.model.messages.RtmpMessage;
-import com.example.streamingservice.model.util.MessageProvider;
+import com.example.streamingservice.rtmp.amf0.Amf0Rules;
+import com.example.streamingservice.rtmp.model.context.Stream;
+import com.example.streamingservice.rtmp.model.context.StreamContext;
+import com.example.streamingservice.rtmp.model.messages.RtmpMediaMessage;
+import com.example.streamingservice.rtmp.model.messages.RtmpMessage;
+import com.example.streamingservice.rtmp.model.util.MessageProvider;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static com.example.streamingservice.model.messages.RtmpConstants.*;
+import static com.example.streamingservice.rtmp.model.messages.RtmpConstants.*;
 
 @Slf4j
 public class RtmpMessageHandler extends MessageToMessageDecoder<RtmpMessage> {

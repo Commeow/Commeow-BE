@@ -1,8 +1,8 @@
-package com.example.streamingservice.handlers;
+package com.example.streamingservice.rtmp.handlers;
 
-import com.example.streamingservice.model.messages.RtmpHeader;
-import com.example.streamingservice.model.messages.RtmpMessage;
-import com.example.streamingservice.model.util.MessageProvider;
+import com.example.streamingservice.rtmp.model.messages.RtmpHeader;
+import com.example.streamingservice.rtmp.model.messages.RtmpMessage;
+import com.example.streamingservice.rtmp.model.util.MessageProvider;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.example.streamingservice.model.messages.RtmpConstants.*;
+import static com.example.streamingservice.rtmp.model.messages.RtmpConstants.*;
 
 @Slf4j
 public class ChunkDecoder extends ReplayingDecoder<ChunkDecoder.DecodeState> {

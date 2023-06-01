@@ -1,4 +1,4 @@
-package com.example.streamingservice.amf0;
+package com.example.streamingservice.rtmp.amf0;
 
 import io.netty.buffer.ByteBuf;
 import lombok.extern.slf4j.Slf4j;

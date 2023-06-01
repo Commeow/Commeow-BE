@@ -1,4 +1,4 @@
-package com.example.streamingservice.model.messages;
+package com.example.streamingservice.rtmp.model.messages;
 
 import lombok.Data;
 
