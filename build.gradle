@@ -42,6 +42,7 @@ subprojects {
 		implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
 		implementation('io.jsonwebtoken:jjwt-api:0.11.1')
 		implementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'
+		implementation 'org.springframework.security:spring-security-oauth2-jose'
 
 		runtimeOnly 'org.postgresql:r2dbc-postgresql'
 		runtimeOnly 'org.postgresql:postgresql'
@@ -81,5 +82,29 @@ subprojects {
 				}
 			}
 		}
+	}
+}
+
+project(':AuthService'){
+	dependencies {
+
+	}
+}
+
+project(':ContentService'){
+	dependencies {
+		implementation 'org.springframework.boot:spring-boot-starter-rsocket'
+	}
+}
+
+project(':StreamingService'){
+	dependencies {
+		compileOnly project(':AuthService')
+	}
+}
+
+project(':TranscodingService'){
+	dependencies {
+		compileOnly project(':AuthService')
 	}
 }
