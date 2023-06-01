@@ -19,7 +19,7 @@ public class PlaylistController {
     @Value("${stream.directory}")
     private String path;
 
-    @GetMapping(value = "/broadcats/**")
+    @GetMapping(value = "/streams/**")
     public Mono<Void> downloadM3u8(ServerHttpRequest request,
                                    ServerHttpResponse response) {
         // 경로 지정
