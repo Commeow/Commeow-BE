@@ -49,6 +49,7 @@ subprojects {
 
 		testImplementation 'org.springframework.boot:spring-boot-starter-test'
 		testImplementation 'io.projectreactor:reactor-test'
+		testImplementation 'org.mockito:mockito-junit-jupiter:3.12.4'
 		testCompileOnly 'org.projectlombok:lombok'
 		testAnnotationProcessor 'org.projectlombok:lombok'
 	}
