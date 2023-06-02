@@ -76,17 +76,8 @@ public class RtmpMessageHandler extends MessageToMessageDecoder<RtmpMessage> {
     private void onConnect(ChannelHandlerContext ctx, List<Object> message) {
         log.info("Client connection from {}, channel id is {}", ctx.channel().remoteAddress(), ctx.channel().id());
 
-        Pattern pattern = Pattern.compile("([^{,]+)=([^,]+)(,\\s*|$)");
-        Matcher matcher = pattern.matcher(message.get(2).toString());
-
-        Map<String, Object> resultMap = new HashMap<>();
-        while (matcher.find()) {
-            resultMap.put(matcher.group(1).trim(), matcher.group(2));
-        }
-
-        String app = (String) resultMap.get("app");
-        Integer clientEncodingFormat = (Integer) resultMap.getOrDefault("objectEncoding", 0);
-
+        String app = (String) ((Map<String, Object>) message.get(2)).get("app");
+        Integer clientEncodingFormat = (Integer) ((Map<String, Object>) message.get(2)).get("objectEncoding");
 
         if (clientEncodingFormat != null && clientEncodingFormat == 3) {
             log.error("AMF3 format is not supported. Closing connection to {}", ctx.channel().remoteAddress());
