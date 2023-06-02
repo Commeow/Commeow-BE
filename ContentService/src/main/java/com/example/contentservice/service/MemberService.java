@@ -62,7 +62,7 @@ public class MemberService {
     @Transactional
     public Mono<ResponseEntity<LoginResponseDto>> login(LoginRequestDto loginRequestDto) {
         return memberRepository.findByUserId(loginRequestDto.getUserId()).switchIfEmpty(Mono.error(new IllegalArgumentException("존재하지 않는 사용자입니다."))).filter(member -> passwordEncoder.matches(loginRequestDto.getPassword(), member.getPassword())).switchIfEmpty(Mono.error(new IllegalArgumentException("비밀번호가 틀렸습니다."))).flatMap(member -> {
-            TokenDto tokenDto = jwtUtil.createAllToken(member.getUserId());
+            TokenDto tokenDto = jwtUtil.createAllToken(member.getUserId(), member.getNickname());
             return refreshTokenRepository.findByUserId(loginRequestDto.getUserId()).switchIfEmpty(refreshTokenRepository.save(new RefreshToken(tokenDto.getRefreshToken(), loginRequestDto.getUserId())).onErrorResume(exception -> {
                 return Mono.error(new RuntimeException("Refresh Token 저장 중 오류 발생!"));
             })).flatMap(refreshToken -> {

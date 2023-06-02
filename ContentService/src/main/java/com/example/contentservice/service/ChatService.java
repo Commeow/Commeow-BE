@@ -19,8 +19,6 @@ public class ChatService {
     private final Map<String, List<RSocketRequester>> participants = new ConcurrentHashMap<>();
 
     public void onConnect(RSocketRequester requester, String chattingAddress) {
-        log.info("추출중........");
-        log.info("onConnect에 들어온걸 환영한다,,,,,");
         requester.rsocket()
                 .onClose()
                 .doFirst(() -> {
@@ -32,7 +30,6 @@ public class ChatService {
                     log.info("Successfully connected to the socket");
                 })
                 .doOnError(error -> {
-                    log.info("당신은 doOnError...중.......");
                     log.info(error.getMessage());
                 })
                 .doFinally(consumer -> {
@@ -40,7 +37,6 @@ public class ChatService {
                     participants.get(chattingAddress).remove(requester);
                 })
                 .subscribe();
-        log.info("subscribe..........완.....료");
     }
 
     public Mono<ChatDto> message(ChatDto chatDto) {

@@ -7,7 +7,6 @@ import com.example.contentservice.dto.channel.ChannelResponseDto;
 import com.example.contentservice.security.UserDetailsImpl;
 import com.example.contentservice.service.ChannelService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -16,12 +15,12 @@ import reactor.core.publisher.Mono;
 
 import java.security.Principal;
 
-@Slf4j
 @RestController
 @RequestMapping("broadcasts")
 @RequiredArgsConstructor
 public class ChannelController {
     private final ChannelService channelService;
+
 
     @GetMapping
     public Mono<ResponseEntity<Flux<ChannelResponseDto>>> getAllOnAirChannels(){

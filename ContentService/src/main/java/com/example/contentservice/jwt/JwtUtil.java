@@ -38,9 +38,9 @@ public class JwtUtil {
         key = Keys.hmacShaKeyFor(bytes);
     }
 
-    public TokenDto createAllToken(String userId) {
-        return new TokenDto(createToken(userId, ACCESS_TOKEN),
-                createToken(userId, REFRESH_TOKEN));
+    public TokenDto createAllToken(String userId, String nickname) {
+        return new TokenDto(createToken(userId, nickname, ACCESS_TOKEN),
+                createToken(userId, nickname, REFRESH_TOKEN));
     }
 
     public String createToken(String userId, String nickname, String type) {
@@ -98,5 +98,9 @@ public class JwtUtil {
 
     public String getUserInfoFromToken(String token) {
         return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().getSubject();
+    }
+
+    public String getUserInfoFromTokenClaim(String token) {
+        return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().get("nickname").toString();
     }
 }
