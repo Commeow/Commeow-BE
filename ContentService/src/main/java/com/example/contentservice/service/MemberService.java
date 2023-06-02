@@ -4,7 +4,10 @@ import com.example.contentservice.domain.Channel;
 import com.example.contentservice.domain.Member;
 import com.example.contentservice.domain.MemberRoleEnum;
 import com.example.contentservice.domain.RefreshToken;
-import com.example.contentservice.dto.member.*;
+import com.example.contentservice.dto.member.LoginRequestDto;
+import com.example.contentservice.dto.member.LoginResponseDto;
+import com.example.contentservice.dto.member.SignupRequestDto;
+import com.example.contentservice.dto.member.TokenDto;
 import com.example.contentservice.jwt.JwtUtil;
 import com.example.contentservice.repository.ChannelRepository;
 import com.example.contentservice.repository.MemberRepository;
@@ -86,10 +89,5 @@ public class MemberService {
             if (result == 0) return Mono.just(ResponseEntity.badRequest().body("삭제 실패 o(TヘT∩)"));
             else return Mono.just(ResponseEntity.ok("삭제 성공 (∩^o^)⊃━☆"));
         });
-    }
-
-    public Mono<ResponseEntity<MemberInfoResponseDto>> getUserInfo(String userId) {
-        return memberRepository.findByUserId(userId)
-                .map(member -> ResponseEntity.ok(new MemberInfoResponseDto(member)));
     }
 }
