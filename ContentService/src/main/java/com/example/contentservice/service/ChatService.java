@@ -8,10 +8,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
@@ -27,28 +24,19 @@ public class ChatService {
         requester.rsocket()
                 .onClose()
                 .doFirst(() -> {
-                    log.info("당신은 doooFirst...중.......");
-//                    CLIENTS.add(requester);
-                    if(participants.containsKey(chattingAddress))
+                    if (participants.containsKey(chattingAddress))
                         participants.get(chattingAddress).add(requester);
-                    else participants.put(chattingAddress, new ArrayList<>(Arrays.asList(requester)));
+                    else
+                        participants.put(chattingAddress, Collections.synchronizedList(new ArrayList<>(Arrays.asList(requester))));
 
-                    StringBuilder sb = new StringBuilder();
-                    for (Map.Entry<String, List<RSocketRequester>> entry : participants.entrySet()) {
-                        sb.append("key: " + entry.getKey() + "\n");
-                        for (RSocketRequester rSocketRequester : entry.getValue()) {
-                            sb.append("requester: " + rSocketRequester + "\n");
-                        }
-                    }
-                    log.info(sb.toString());
+                    log.info("Successfully connected to the socket");
                 })
                 .doOnError(error -> {
                     log.info("당신은 doOnError...중.......");
                     log.info(error.getMessage());
                 })
                 .doFinally(consumer -> {
-                    log.info("당신은 doFinally...중.......");
-//                    CLIENTS.remove(requester);
+                    log.info("Socket Connection Closed");
                     participants.get(chattingAddress).remove(requester);
                 })
                 .subscribe();
@@ -71,3 +59,13 @@ public class ChatService {
                 .subscribe();
     }
 }
+
+/* StringBuilder sb = new StringBuilder();
+   for (Map.Entry<String, List<RSocketRequester>> entry : participants.entrySet()) {
+            sb.append("ChattingAddress: " + entry.getKey() + "\n");
+            for (RSocketRequester rSocketRequester : entry.getValue()) {
+                  sb.append("requester: " + rSocketRequester + "\n");
+            }
+   }
+   log.info(sb.toString()); */
+

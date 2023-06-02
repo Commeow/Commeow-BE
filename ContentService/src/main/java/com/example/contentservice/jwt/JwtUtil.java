@@ -43,7 +43,7 @@ public class JwtUtil {
                 createToken(userId, REFRESH_TOKEN));
     }
 
-    public String createToken(String userId, String type) {
+    public String createToken(String userId, String nickname, String type) {
         Date date = new Date();
         Date exprTime = type.equals(JwtUtil.ACCESS_TOKEN) ?
                 Date.from(Instant.now().plus(1, ChronoUnit.HOURS)) :
@@ -52,6 +52,7 @@ public class JwtUtil {
         return BEARER_PREFIX +
                 Jwts.builder()
                         .signWith(key, signatureAlgorithm)
+                        .claim("nickname", nickname )
                         .setSubject(userId)
                         .setExpiration(exprTime)
                         .setIssuedAt(date)

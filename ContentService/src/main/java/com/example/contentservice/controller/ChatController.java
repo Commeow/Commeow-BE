@@ -20,10 +20,6 @@ public class ChatController {
 
     @ConnectMapping
     public void onConnect(RSocketRequester requester, @Payload Object chattingAddress) {
-        log.info("dataMimeType {}", requester.dataMimeType());
-        log.info("metadataMimeType  {}", requester.metadataMimeType());
-        log.info("Object payload  {} " , chattingAddress);
-
         log.info("onConnect");
         chatService.onConnect(requester, (String)chattingAddress);
     }

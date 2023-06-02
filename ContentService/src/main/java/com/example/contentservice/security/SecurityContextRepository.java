@@ -48,7 +48,11 @@ public class SecurityContextRepository implements ServerSecurityContextRepositor
                                                         .flatMap((validate) -> {
                                                             if (validate) {
                                                                 exchange.getResponse().getHeaders()
-                                                                        .set(JwtUtil.ACCESS_TOKEN, jwtUtil.createToken(jwtUtil.getUserInfoFromToken(refreshToken), JwtUtil.ACCESS_TOKEN));
+                                                                        .set(JwtUtil.ACCESS_TOKEN,
+                                                                                jwtUtil.createToken(
+                                                                                        jwtUtil.getUserInfoFromToken(refreshToken),
+                                                                                        jwtUtil.getUserInfoFromTokenClaim(refreshToken),
+                                                                                        JwtUtil.ACCESS_TOKEN));
                                                                 return this.authenticationManager.authenticate(refreshAuth)
                                                                         .map(SecurityContextImpl::new);
                                                             } else
