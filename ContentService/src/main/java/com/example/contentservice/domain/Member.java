@@ -2,6 +2,7 @@ package com.example.contentservice.domain;
 
 import com.example.contentservice.dto.member.SignupRequestDto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
@@ -12,6 +13,7 @@ import java.util.UUID;
 @Getter
 @Table("member")
 @NoArgsConstructor
+@AllArgsConstructor
 public class Member{
     @Id
     private Long id;
