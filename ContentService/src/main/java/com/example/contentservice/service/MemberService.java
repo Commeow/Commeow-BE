@@ -40,8 +40,8 @@ public class MemberService {
                     else {
                         return memberRepository
                                 .existsByNickname(signupRequestDto.getNickname())
-                                .flatMap(valid -> {
-                                    if (!valid) return Mono.error(new IllegalArgumentException("중복된 닉네임입니다."));
+                                .flatMap(duplicated -> {
+                                    if (duplicated) return Mono.error(new IllegalArgumentException("중복된 닉네임입니다."));
                                     else return memberRepository
                                             .save(new Member(signupRequestDto, passwordEncoder.encode(signupRequestDto.getPassword()),
                                                     signupRequestDto.getMemberRole().equals("ADMIN") ? MemberRoleEnum.ADMIN : MemberRoleEnum.USER))
