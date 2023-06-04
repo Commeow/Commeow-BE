@@ -3,13 +3,14 @@ package com.example.contentservice.controller;
 import com.example.contentservice.dto.member.LoginRequestDto;
 import com.example.contentservice.dto.member.LoginResponseDto;
 import com.example.contentservice.dto.member.SignupRequestDto;
-import com.example.contentservice.security.UserDetailsImpl;
+import com.example.contentservice.security.PrincipalUtil;
 import com.example.contentservice.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
+
+import java.security.Principal;
 
 @RestController
 @RequiredArgsConstructor
@@ -17,6 +18,7 @@ import reactor.core.publisher.Mono;
 public class MemberController {
 
     private final MemberService memberService;
+    private final PrincipalUtil principalUtil;
 
     @PostMapping("/signup")
     public Mono<ResponseEntity<String>> signup(@RequestBody SignupRequestDto signupRequestDto) {
@@ -29,7 +31,9 @@ public class MemberController {
     }
 
     @GetMapping("/logout")
-    public Mono<ResponseEntity<String>> logout(@AuthenticationPrincipal UserDetailsImpl userDetails) {
-        return memberService.logout(userDetails.getUserId());
+    public Mono<ResponseEntity<String>> logout(Mono<Principal> userDetails) {
+        return userDetails.flatMap(principal-> {
+            return memberService.logout(principalUtil.getPrincipal(principal).getUserId());
+        });
     }
 }

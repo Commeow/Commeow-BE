@@ -7,5 +7,5 @@ import reactor.core.publisher.Mono;
 
 public interface ChannelRepository extends ReactiveCrudRepository<Channel, Long> {
     Flux<Channel> findAllByOnAirTrue();
-    Mono<Channel> findById(Long id);
+    Mono<Channel> findByStreamer(String streamer);
 }
