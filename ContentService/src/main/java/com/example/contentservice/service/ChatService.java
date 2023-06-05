@@ -56,12 +56,3 @@ public class ChatService {
     }
 }
 
-/* StringBuilder sb = new StringBuilder();
-   for (Map.Entry<String, List<RSocketRequester>> entry : participants.entrySet()) {
-            sb.append("ChattingAddress: " + entry.getKey() + "\n");
-            for (RSocketRequester rSocketRequester : entry.getValue()) {
-                  sb.append("requester: " + rSocketRequester + "\n");
-            }
-   }
-   log.info(sb.toString()); */
-

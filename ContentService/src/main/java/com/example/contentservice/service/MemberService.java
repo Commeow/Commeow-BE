@@ -21,6 +21,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
+import java.util.NoSuchElementException;
+
 @Service
 @RequiredArgsConstructor
 public class MemberService {
@@ -54,7 +56,7 @@ public class MemberService {
                                                             return Mono.error(new RuntimeException("회원 정보 저장 오류"));
                                                         });
                                             })
-                                            .thenReturn(ResponseEntity.ok(signupRequestDto.getNickname() + "님 회원 가입 완료 o(〃＾▽＾〃)o"));
+                                            .thenReturn(ResponseEntity.ok(signupRequestDto.getNickname() + "님 회원 가입 완료"));
                                 });
                     }
                 });
@@ -64,7 +66,7 @@ public class MemberService {
     public Mono<ResponseEntity<LoginResponseDto>> login(LoginRequestDto loginRequestDto) {
         return memberRepository
                 .findByUserId(loginRequestDto.getUserId())
-                .switchIfEmpty(Mono.error(new IllegalArgumentException("존재하지 않는 사용자입니다.")))
+                .switchIfEmpty(Mono.error(new NoSuchElementException("존재하지 않는 사용자입니다.")))
                 .filter(member -> passwordEncoder.matches(loginRequestDto.getPassword(), member.getPassword()))
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("비밀번호가 틀렸습니다.")))
                 .flatMap(member -> {
@@ -74,7 +76,7 @@ public class MemberService {
                                     refreshTokenRepository
                                             .save(new RefreshToken(tokenDto.getRefreshToken(), loginRequestDto.getUserId()))
                                             .onErrorResume(exception -> {
-                                                return Mono.error(new RuntimeException("Refresh Token 저장 중 오류 발생!"));
+                                                return Mono.error(new RuntimeException("회원 정보 저장 오류"));
                                             }))
                             .flatMap(refreshToken -> {
                                 if (refreshToken.getRefreshToken().equals(tokenDto.getRefreshToken()))
@@ -82,7 +84,7 @@ public class MemberService {
                                 else
                                     return refreshTokenRepository.save(refreshToken.updateToken(tokenDto.getRefreshToken()))
                                             .onErrorResume(exception -> {
-                                                return Mono.error(new RuntimeException("Refresh Token 저장 중 오류 발생!"));
+                                                return Mono.error(new RuntimeException("회원 정보 저장 오류"));
                                             });
                             }).map(refreshToken -> {
                                 HttpHeaders header = new HttpHeaders();
@@ -98,8 +100,7 @@ public class MemberService {
         return refreshTokenRepository
                 .deleteByUserId(userId)
                 .flatMap(result -> {
-                    if (result == 0) return Mono.just(ResponseEntity.badRequest().body("삭제 실패 o(TヘT∩)"));
-                    else return Mono.just(ResponseEntity.ok("삭제 성공 (∩^o^)⊃━☆"));
+                    return Mono.just(ResponseEntity.ok("Success"));
                 });
     }
 }

@@ -14,7 +14,6 @@ import reactor.core.publisher.Mono;
 public class AuthenticationManager implements ReactiveAuthenticationManager {
 
     private final JwtUtil jwtUtil;
-    private final MemberRepository memberRepository;
     private final UserDetailsServiceImpl userDetailsService;
 
     @Override

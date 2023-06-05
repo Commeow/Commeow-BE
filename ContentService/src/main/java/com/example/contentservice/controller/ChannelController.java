@@ -18,30 +18,29 @@ import java.security.Principal;
 @RequiredArgsConstructor
 public class ChannelController {
     private final ChannelService channelService;
-    private final PrincipalUtil principalUtil;
-
 
     @GetMapping
-    public Mono<ResponseEntity<Flux<ChannelResponseDto>>> getAllOnAirChannels(){
+    public Mono<ResponseEntity<Flux<ChannelResponseDto>>> getAllOnAirChannels() {
         return channelService.getAllOnAirChannels();
     }
 
     @GetMapping("/{id}")
-    public Mono<ResponseEntity<ChannelDetailResponseDto>> getChannelDetail(@PathVariable("id") Long id){
+    public Mono<ResponseEntity<ChannelDetailResponseDto>> getChannelDetail(@PathVariable("id") Long id) {
         return channelService.getChannelDetail(id);
     }
 
-    @PostMapping("/{id}/onair")
-    public Mono<ResponseEntity<String>> startBroadcast(Mono<Principal> userDetails, @PathVariable("id") Long id, @RequestBody ChannelRequestDto channelRequestDto){
-        return userDetails.flatMap(principal-> {
-            return channelService.startBroadcast(principalUtil.getPrincipal(principal), id, channelRequestDto);
-        });
+    @GetMapping("/{streamer}/check")
+    public Mono<Boolean> checkStreamer(@PathVariable("streamer") String streamer, @RequestBody StreamerCheckRequestDto streamerCheckRequestDto) {
+        return channelService.checkBroadcast(streamer, streamerCheckRequestDto);
     }
 
-    @PostMapping("/{id}/offair")
-    public Mono<ResponseEntity<String>> endBroadcast(Mono<Principal> userDetails, @PathVariable("id") Long id){
-        return userDetails.flatMap(principal-> {
-            return channelService.endBroadcast(principalUtil.getPrincipal(principal), id);
-        });
+    @PostMapping("/{streamer}/onair")
+    public Mono<Boolean> startBroadcast(@PathVariable("streamer") String streamer) {
+        return channelService.startBroadcast(streamer);
+    }
+
+    @PostMapping("/{streamer}/offair")
+    public Mono<Boolean> endBroadcast(@PathVariable("streamer") String streamer) {
+        return channelService.endBroadcast(streamer);
     }
 }
