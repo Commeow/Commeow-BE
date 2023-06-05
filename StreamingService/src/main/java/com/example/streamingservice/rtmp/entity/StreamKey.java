@@ -9,7 +9,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-public class Member {
-    String username;
+public class StreamKey {
     String streamKey;
 }

@@ -1,6 +1,6 @@
 package com.example.streamingservice.rtmp;
 
-import com.example.streamingservice.rtmp.entity.Member;
+import com.example.streamingservice.rtmp.entity.StreamKey;
 import com.example.streamingservice.rtmp.handlers.*;
 import com.example.streamingservice.rtmp.model.context.Stream;
 import io.netty.channel.ChannelOption;
@@ -15,6 +15,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
+import reactor.core.scheduler.Schedulers;
 import reactor.netty.DisposableServer;
 import reactor.netty.tcp.TcpServer;
 import reactor.util.retry.Retry;
@@ -49,7 +51,7 @@ public abstract class RtmpServer implements CommandLineRunner {
 //                .host("0.0.0.0")
                 .port(1935)
                 .doOnBound(disposableServer ->
-                        log.info("RTMP server started on port {}", disposableServer.port()))
+                        log.info("RTMP 서버가 포트 {} 에서 시작됩니다.", disposableServer.port()))
                 .doOnConnection(connection -> connection
                         .addHandlerLast(getInboundConnectionLogger())
                         .addHandlerLast(getHandshakeHandler())
@@ -64,16 +66,16 @@ public abstract class RtmpServer implements CommandLineRunner {
                         .flatMap(stream ->
                                 webClient
                                 .post()
-                                .uri(authAddress + "/auth/check")
+                                .uri(authAddress + "/broadcasts/" + stream.getStreamName() +  "/check")
                                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                                .body(Mono.just(new Member(stream.getStreamName(), stream.getStreamKey())), Member.class)
+                                .body(Mono.just(new StreamKey(stream.getStreamKey())), StreamKey.class)
                                 .retrieve()
                                 .bodyToMono(Boolean.class)
                                 .retryWhen(Retry.fixedDelay(3, Duration.ofMillis(500)))
                                 .doOnError(error -> log.info(error.getMessage()))
-                                .onErrorReturn(Boolean.FALSE) // FALSE로 바꿔야 한다..!
+                                .onErrorReturn(Boolean.FALSE)
                                 .flatMap(ans -> {
-                                    log.info("Member {} stream key validation", stream.getStreamName());
+                                    log.info("스트리머 {} 의 stream key가 유효합니다.", stream.getStreamName());
                                     if (ans) {
                                         stream.sendPublishMessage();
                                         stream.getReadyToBroadcast().thenRun(() -> webClient
@@ -84,12 +86,47 @@ public abstract class RtmpServer implements CommandLineRunner {
 //                                                .delaySubscription(Duration.ofSeconds(10L))
                                                 .retryWhen(Retry.fixedDelay(3, Duration.ofMillis(1000)))
                                                 .doOnError(error -> {
-                                                    log.info("Error occured on transcoding server " + error.getMessage());
+                                                    log.info("Transcoding 서버에서 다음의 에러가 발생했습니다 : " + error.getMessage());
+                                                    webClient
+                                                            .post()
+                                                            .uri(authAddress + "/broadcasts/" + stream.getStreamName() + "/offair")
+                                                            .retrieve()
+                                                            .bodyToMono(Boolean.class)
+                                                            .retryWhen(Retry.fixedDelay(3, Duration.ofMillis(500)))
+                                                            .doOnError(e -> log.info(e.getMessage()))
+                                                            .onErrorReturn(Boolean.FALSE)
+                                                            .subscribeOn(Schedulers.parallel())
+                                                            .subscribe((s) -> {
+                                                                log.info("방송 송출이 끊어집니다.");
+                                                                if (s) {
+                                                                    log.info("방송이 종료됩니다.");
+                                                                } else {
+                                                                    log.info("ContentService 서버와 통신 에러 발생");
+                                                                }
+                                                            });
                                                     stream.closeStream();
                                                     stream.getPublisher().disconnect();
                                                 })
                                                 .onErrorComplete()
-                                                .subscribe((s) -> log.info("Transcoding server started ffmpeg with pid " + s.toString())));
+                                                .subscribe((s) -> {
+                                                    log.info("Transcoding server started ffmpeg with pid " + s.toString());
+                                                    webClient
+                                                            .post()
+                                                            .uri(authAddress + "/broadcasts/" + stream.getStreamName() + "/onair")
+                                                            .retrieve()
+                                                            .bodyToMono(Boolean.class)
+                                                            .retryWhen(Retry.fixedDelay(3, Duration.ofMillis(500)))
+                                                            .doOnError(e -> log.info(e.getMessage()))
+                                                            .onErrorReturn(Boolean.FALSE)
+                                                            .subscribeOn(Schedulers.parallel())
+                                                            .subscribe((t) -> {
+                                                                if (t) {
+                                                                    log.info("방송이 시작됩니다.");
+                                                                } else {
+                                                                    log.info("ContentService 서버와 통신 에러 발생");
+                                                                }
+                                                            });
+                                                }));
                                     } else {
                                         stream.getPublisher().disconnect();
                                     }
