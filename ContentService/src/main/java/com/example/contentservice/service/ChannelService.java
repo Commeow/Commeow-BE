@@ -68,14 +68,13 @@ public class ChannelService {
 
     public Mono<Boolean> endBroadcast(String streamer) {
         return channelRepository
-                .findById(id)
+                .findByStreamer(streamer)
                 .switchIfEmpty(Mono.error(new RuntimeException("없는 방송이다! Σ(っ °Д °;)っ")))
-                .flatMap(channel -> {
-                    if (!channel.getStreamer().equals(member.getNickname()))
-                        return Mono.error(new RuntimeException("권한이 없잖아! (╬▔皿▔)╯"));
-
+                .map(channel -> {
                     return channelRepository.save(channel.channelOff());
                 })
-                .thenReturn(ResponseEntity.ok("방송 종료 (。・・)ノ <(BYE)"));
+                .flatMap(channel->{
+                    return Mono.just(false);
+                });
     }
 }

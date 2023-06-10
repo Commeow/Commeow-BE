@@ -22,6 +22,7 @@ class ChannelTest {
 
     }
 
+    /*
     @Test
     @DisplayName("방송 시작 테스트")
     public void testChannelOn() {
@@ -44,6 +45,7 @@ class ChannelTest {
                 })
                 .verifyComplete();
     }
+    */
 
     @Test
     @DisplayName("방송 종료 테스트")

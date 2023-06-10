@@ -28,8 +28,7 @@ public class Channel {
         this.onAir = false;
     }
 
-    public Channel channelOn(ChannelRequestDto channelRequestDto){
-        this.title = channelRequestDto.getTitle();
+    public Channel channelOn(){
         this.onAir = true;
         return this;
     }
