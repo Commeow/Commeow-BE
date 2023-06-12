@@ -15,14 +15,12 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 import reactor.netty.DisposableServer;
 import reactor.netty.tcp.TcpServer;
 import reactor.util.retry.Retry;
 
 import java.time.Duration;
-
 
 @NoArgsConstructor
 @Getter
@@ -48,7 +46,6 @@ public abstract class RtmpServer implements CommandLineRunner {
     @Override
     public void run(String... args) {
         DisposableServer server = TcpServer.create()
-//                .host("0.0.0.0")
                 .port(1935)
                 .doOnBound(disposableServer ->
                         log.info("RTMP 서버가 포트 {} 에서 시작됩니다.", disposableServer.port()))
@@ -58,80 +55,80 @@ public abstract class RtmpServer implements CommandLineRunner {
                         .addHandlerLast(getChunkDecoder())
                         .addHandlerLast(getChunkEncoder())
                         .addHandlerLast(getRtmpMessageHandler()))
-                .option(ChannelOption.SO_BACKLOG, 128) // 클라이언트가 새로운 연결을 요청할 때 대기하는 큐 크기를 128로 설정
-                .childOption(ChannelOption.SO_KEEPALIVE, true) // 특정 시간동안 클라이언트의 요청이 없어도 서버-클라이언트 연결이 끊기지 않도록 설정
+                .option(ChannelOption.SO_BACKLOG, 128)
+                .childOption(ChannelOption.SO_KEEPALIVE, true)
                 .handle((in, out) -> in
                         .receiveObject()
                         .cast(Stream.class)
-                        .flatMap(stream ->
-                                webClient
-                                .post()
-                                .uri(authAddress + "/broadcasts/" + stream.getStreamName() +  "/check")
-                                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                                .body(Mono.just(new StreamKey(stream.getStreamKey())), StreamKey.class)
-                                .retrieve()
-                                .bodyToMono(Boolean.class)
-                                .retryWhen(Retry.fixedDelay(3, Duration.ofMillis(500)))
-                                .doOnError(error -> log.info(error.getMessage()))
-                                .onErrorReturn(Boolean.FALSE)
-                                .flatMap(ans -> {
-                                    log.info("스트리머 {} 의 stream key가 유효합니다.", stream.getStreamName());
-                                    if (ans) {
-                                        stream.sendPublishMessage();
-                                        stream.getReadyToBroadcast().thenRun(() -> webClient
-                                                .get()
-                                                .uri(transcodingAddress + "/ffmpeg/" + stream.getStreamName())
-                                                .retrieve()
-                                                .bodyToMono(Long.class)
-//                                                .delaySubscription(Duration.ofSeconds(10L))
-                                                .retryWhen(Retry.fixedDelay(3, Duration.ofMillis(1000)))
-                                                .doOnError(error -> {
-                                                    log.info("Transcoding 서버에서 다음의 에러가 발생했습니다 : " + error.getMessage());
-                                                    webClient
-                                                            .post()
-                                                            .uri(authAddress + "/broadcasts/" + stream.getStreamName() + "/offair")
-                                                            .retrieve()
-                                                            .bodyToMono(Boolean.class)
-                                                            .retryWhen(Retry.fixedDelay(3, Duration.ofMillis(500)))
-                                                            .doOnError(e -> log.info(e.getMessage()))
-                                                            .onErrorReturn(Boolean.FALSE)
-                                                            .subscribeOn(Schedulers.parallel())
-                                                            .subscribe((s) -> {
-                                                                log.info("방송 송출이 끊어집니다.");
-                                                                if (s) {
-                                                                    log.info("방송이 종료됩니다.");
-                                                                } else {
-                                                                    log.info("ContentService 서버와 통신 에러 발생");
-                                                                }
-                                                            });
-                                                    stream.closeStream();
-                                                    stream.getPublisher().disconnect();
-                                                })
-                                                .onErrorComplete()
-                                                .subscribe((s) -> {
-                                                    log.info("Transcoding server started ffmpeg with pid " + s.toString());
-                                                    webClient
-                                                            .post()
-                                                            .uri(authAddress + "/broadcasts/" + stream.getStreamName() + "/onair")
-                                                            .retrieve()
-                                                            .bodyToMono(Boolean.class)
-                                                            .retryWhen(Retry.fixedDelay(3, Duration.ofMillis(500)))
-                                                            .doOnError(e -> log.info(e.getMessage()))
-                                                            .onErrorReturn(Boolean.FALSE)
-                                                            .subscribeOn(Schedulers.parallel())
-                                                            .subscribe((t) -> {
-                                                                if (t) {
-                                                                    log.info("방송이 시작됩니다.");
-                                                                } else {
-                                                                    log.info("ContentService 서버와 통신 에러 발생");
-                                                                }
-                                                            });
-                                                }));
-                                    } else {
-                                        stream.getPublisher().disconnect();
-                                    }
-                                    return Mono.empty();
-                                }))
+                        .flatMap(stream -> {
+                            return webClient
+                                    .post()
+                                    .uri(authAddress + "/broadcasts/" + stream.getStreamName() + "/check")
+                                    .body(Mono.just(new StreamKey(stream.getStreamKey())), StreamKey.class)
+                                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                    .retrieve()
+                                    .bodyToMono(Boolean.class).log()
+                                    .retryWhen(Retry.fixedDelay(3, Duration.ofMillis(500)))
+                                    .doOnError(error -> log.info(error.getMessage()))
+                                    .onErrorReturn(Boolean.FALSE)
+                                    .flatMap(ans -> {
+                                        if (ans) {
+                                            log.info("스트리머 {} 의 stream key가 유효합니다.", stream.getStreamName());
+                                            stream.sendPublishMessage();
+                                            stream.getReadyToBroadcast().thenRun(() -> webClient
+                                                    .get()
+                                                    .uri(transcodingAddress + "/ffmpeg/" + stream.getStreamName())
+                                                    .retrieve()
+                                                    .bodyToMono(Long.class)
+                                                    .retryWhen(Retry.fixedDelay(3, Duration.ofMillis(1000)))
+                                                    .doOnError(error -> {
+                                                        log.info("Transcoding 서버에서 다음의 에러가 발생했습니다 : " + error.getMessage());
+                                                        webClient
+                                                                .post()
+                                                                .uri(authAddress + "/broadcasts/" + stream.getStreamName() + "/offair")
+                                                                .retrieve()
+                                                                .bodyToMono(Boolean.class)
+                                                                .retryWhen(Retry.fixedDelay(3, Duration.ofMillis(500)))
+                                                                .doOnError(e -> log.info(e.getMessage()))
+                                                                .onErrorReturn(Boolean.FALSE)
+                                                                .subscribeOn(Schedulers.parallel())
+                                                                .subscribe((s) -> {
+                                                                    log.info("방송 송출이 끊어집니다.");
+                                                                    if (s) {
+                                                                        log.info("방송이 종료됩니다.");
+                                                                    } else {
+                                                                        log.info("ContentService 서버와 통신 에러 발생");
+                                                                    }
+                                                                });
+                                                        stream.closeStream();
+                                                        stream.getPublisher().disconnect();
+                                                    })
+                                                    .onErrorComplete()
+                                                    .subscribe((s) -> {
+                                                        log.info("Transcoding server started ffmpeg with pid " + s.toString());
+                                                        webClient
+                                                                .post()
+                                                                .uri(authAddress + "/broadcasts/" + stream.getStreamName() + "/onair")
+                                                                .retrieve()
+                                                                .bodyToMono(Boolean.class)
+                                                                .retryWhen(Retry.fixedDelay(3, Duration.ofMillis(500)))
+                                                                .doOnError(e -> log.info(e.getMessage()))
+                                                                .onErrorReturn(Boolean.FALSE)
+                                                                .subscribeOn(Schedulers.parallel())
+                                                                .subscribe((t) -> {
+                                                                    if (t) {
+                                                                        log.info("방송이 시작됩니다.");
+                                                                    } else {
+                                                                        log.info("ContentService 서버와 통신 에러 발생");
+                                                                    }
+                                                                });
+                                                    }));
+                                        } else {
+                                            stream.getPublisher().disconnect();
+                                        }
+                                        return Mono.empty();
+                                    });
+                        })
                         .then())
                 .bindNow();
         server.onDispose().block();

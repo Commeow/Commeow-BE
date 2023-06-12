@@ -1,19 +1,18 @@
 package com.example.contentservice.controller;
 
 import com.example.contentservice.dto.channel.ChannelDetailResponseDto;
-import com.example.contentservice.dto.channel.ChannelRequestDto;
 import com.example.contentservice.dto.channel.ChannelResponseDto;
-import com.example.contentservice.security.PrincipalUtil;
+import com.example.contentservice.dto.channel.StreamerCheckRequestDto;
 import com.example.contentservice.service.ChannelService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.security.Principal;
-
 @RestController
+@Slf4j
 @RequestMapping("broadcasts")
 @RequiredArgsConstructor
 public class ChannelController {
@@ -29,7 +28,7 @@ public class ChannelController {
         return channelService.getChannelDetail(id);
     }
 
-    @GetMapping("/{streamer}/check")
+    @PostMapping("/{streamer}/check")
     public Mono<Boolean> checkStreamer(@PathVariable("streamer") String streamer, @RequestBody StreamerCheckRequestDto streamerCheckRequestDto) {
         return channelService.checkBroadcast(streamer, streamerCheckRequestDto);
     }

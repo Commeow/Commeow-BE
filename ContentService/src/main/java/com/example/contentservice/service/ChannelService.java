@@ -58,23 +58,19 @@ public class ChannelService {
         return channelRepository
                 .findByStreamer(streamer)
                 .switchIfEmpty(Mono.error(new RuntimeException("존재하지 않는 채널입니다.")))
-                .map(channel -> {
-                    return channelRepository.save(channel.channelOn());
-                })
                 .flatMap(channel -> {
-                    return Mono.just(true);
+                    return channelRepository.save(channel.channelOn())
+                            .thenReturn(true);
                 });
     }
 
     public Mono<Boolean> endBroadcast(String streamer) {
         return channelRepository
                 .findByStreamer(streamer)
-                .switchIfEmpty(Mono.error(new RuntimeException("없는 방송이다! Σ(っ °Д °;)っ")))
-                .map(channel -> {
-                    return channelRepository.save(channel.channelOff());
-                })
-                .flatMap(channel->{
-                    return Mono.just(false);
+                .switchIfEmpty(Mono.error(new RuntimeException("존재하지 않는 채널입니다.")))
+                .flatMap(channel -> {
+                    return channelRepository.save(channel.channelOff())
+                            .thenReturn(true);
                 });
     }
 }
