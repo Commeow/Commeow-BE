@@ -10,13 +10,16 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.scheduler.Schedulers;
+import reactor.util.retry.Retry;
 
+import java.time.Duration;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static com.example.streamingservice.rtmp.model.messages.RtmpConstants.*;
 
@@ -25,6 +28,12 @@ public class RtmpMessageHandler extends MessageToMessageDecoder<RtmpMessage> {
 
     private String currentSessionStream;
     private final StreamContext context;
+
+    @Value("${auth.server}")
+    private String authAddress;
+
+    @Autowired
+    WebClient webClient;
 
     public RtmpMessageHandler(StreamContext context) {
         this.context = context;
@@ -189,6 +198,22 @@ public class RtmpMessageHandler extends MessageToMessageDecoder<RtmpMessage> {
             ctx.writeAndFlush(MessageProvider.onStatus("status", "NetStream.Unpublish.Success", "Stop publishing"));
         } else if (ctx.channel().id().equals(stream.getPublisher().id())) {
             ctx.writeAndFlush(MessageProvider.onStatus("status", "NetStream.Unpublish.Success", "Stop publishing"));
+            webClient
+                    .post()
+                    .uri(authAddress + "/broadcasts/" + stream.getStreamName() + "/offair")
+                    .retrieve()
+                    .bodyToMono(Boolean.class)
+                    .retryWhen(Retry.fixedDelay(3, Duration.ofMillis(500)))
+                    .doOnError(e -> log.info(e.getMessage()))
+                    .onErrorReturn(Boolean.FALSE)
+                    .subscribeOn(Schedulers.parallel())
+                    .subscribe((s) -> {
+                        if (s) {
+                            log.info("방송이 종료됩니다.");
+                        } else {
+                            log.info("ContentService 서버와 통신 에러 발생");
+                        }
+                    });
             stream.closeStream();
             context.deleteStream(stream.getStreamName());
             ctx.close();
