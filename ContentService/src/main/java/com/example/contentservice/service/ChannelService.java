@@ -39,14 +39,11 @@ public class ChannelService {
                 .map(channel -> ResponseEntity.ok(new ChannelDetailResponseDto(channel)));
     }
 
-    @Transactional(readOnly = true)
     public Mono<Boolean> checkBroadcast(String streamer, StreamerCheckRequestDto streamerCheckRequestDto) {
         String streamKey = streamerCheckRequestDto.getStreamKey();
 
         return memberRepository.findByNickname(streamer)
                 .switchIfEmpty(Mono.error(new NoSuchElementException("사용자를 찾을 수 없습니다.")))
-                .filter(member -> member.getNickname().equals(streamer))
-                .switchIfEmpty(Mono.error(new AuthenticationException("사용자 정보가 일치하지 않습니다.")))
                 .filter(member -> member.getStreamKey().equals(streamKey))
                 .switchIfEmpty(Mono.error(new AuthenticationException("스트림 키를 다시 확인해주세요.")))
                 .flatMap(member -> {
@@ -57,7 +54,7 @@ public class ChannelService {
     public Mono<Boolean> startBroadcast(String streamer) {
         return channelRepository
                 .findByStreamer(streamer)
-                .switchIfEmpty(Mono.error(new RuntimeException("존재하지 않는 채널입니다.")))
+                .switchIfEmpty(Mono.error(new NoSuchElementException("존재하지 않는 채널입니다.")))
                 .flatMap(channel -> {
                     return channelRepository.save(channel.channelOn())
                             .thenReturn(true);
@@ -67,7 +64,7 @@ public class ChannelService {
     public Mono<Boolean> endBroadcast(String streamer) {
         return channelRepository
                 .findByStreamer(streamer)
-                .switchIfEmpty(Mono.error(new RuntimeException("존재하지 않는 채널입니다.")))
+                .switchIfEmpty(Mono.error(new NoSuchElementException("존재하지 않는 채널입니다.")))
                 .flatMap(channel -> {
                     return channelRepository.save(channel.channelOff())
                             .thenReturn(true);
