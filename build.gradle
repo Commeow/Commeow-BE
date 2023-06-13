@@ -39,9 +39,8 @@ subprojects {
 		compileOnly 'org.projectlombok:lombok'
 
 		implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
-		implementation('io.jsonwebtoken:jjwt-api:0.11.1')
 		implementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'
-		implementation 'org.springframework.security:spring-security-oauth2-jose'
+		implementation 'io.jsonwebtoken:jjwt-api:0.11.1'
 
 		runtimeOnly 'org.postgresql:r2dbc-postgresql'
 		runtimeOnly 'org.postgresql:postgresql'
@@ -51,21 +50,17 @@ subprojects {
 		testImplementation 'io.projectreactor:reactor-test'
 		testImplementation 'org.mockito:mockito-junit-jupiter:3.12.4'
 		testCompileOnly 'org.projectlombok:lombok'
-//		testImplementation 'org.springframework.security:spring-security-test'
-//		testImplementation 'org.springframework.boot:spring-boot-starter-security'
+
 		testImplementation 'org.springframework.boot:spring-boot-starter-webflux'
 		testAnnotationProcessor 'org.projectlombok:lombok'
 		testCompileOnly 'org.projectlombok:lombok'
 
 		testImplementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
-		testImplementation 'io.jsonwebtoken:jjwt-api:0.11.1'
 		testImplementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'
-		testImplementation 'org.springframework.security:spring-security-oauth2-jose'
 		testImplementation 'junit:junit:4.13.1'
 
 		testRuntimeOnly 'org.postgresql:r2dbc-postgresql'
 		testRuntimeOnly 'org.postgresql:postgresql'
-		testRuntimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.1', 'io.jsonwebtoken:jjwt-jackson:0.11.1'
 	}
 
 	tasks.named('test') {
@@ -99,27 +94,25 @@ subprojects {
 	}
 }
 
-project(':AuthService'){
-	dependencies {
-		implementation 'org.springframework.boot:spring-boot-starter-security'
-	}
-}
-
 project(':ContentService'){
 	dependencies {
 		implementation 'org.springframework.boot:spring-boot-starter-rsocket'
 		implementation 'org.springframework.boot:spring-boot-starter-security'
+
+		testImplementation 'org.springframework.security:spring-security-test'
+		testImplementation 'org.springframework.boot:spring-boot-starter-security'
+		testImplementation 'org.springframework.security:spring-security-oauth2-jose'
+		testRuntimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.1', 'io.jsonwebtoken:jjwt-jackson:0.11.1'
+		testImplementation 'io.jsonwebtoken:jjwt-api:0.11.1'
 	}
 }
 
 project(':StreamingService'){
 	dependencies {
-		compileOnly project(':AuthService')
 	}
 }
 
 project(':TranscodingService'){
 	dependencies {
-		compileOnly project(':AuthService')
 	}
 }

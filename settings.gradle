@@ -1,5 +1,4 @@
 rootProject.name = 'Commeow'
-include 'AuthService'
 include 'ContentService'
 include 'StreamingService'
 include 'TranscodingService'
