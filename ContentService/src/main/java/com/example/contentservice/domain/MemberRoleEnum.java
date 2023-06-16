@@ -10,7 +10,7 @@ public enum MemberRoleEnum {
         this.authority = authority;
     }
 
-    public String getAuthority(){
+    public String getAuthority() {
         return this.authority;
     }
 

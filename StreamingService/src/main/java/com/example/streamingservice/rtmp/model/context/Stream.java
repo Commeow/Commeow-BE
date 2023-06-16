@@ -1,9 +1,9 @@
 package com.example.streamingservice.rtmp.model.context;
 
+import com.example.streamingservice.rtmp.model.messages.RtmpConstants;
 import com.example.streamingservice.rtmp.model.messages.RtmpMediaMessage;
 import com.example.streamingservice.rtmp.model.messages.RtmpMessage;
 import com.example.streamingservice.rtmp.model.util.MessageProvider;
-import com.example.streamingservice.rtmp.model.messages.RtmpConstants;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import lombok.Getter;
@@ -92,7 +92,7 @@ public class Stream {
         channel.writeAndFlush(RtmpMediaMessage.toRtmpMessage(audioConfig));
 
         log.info("Sending group of pictures to client");
-        for (RtmpMediaMessage message:rtmpGopCache) {
+        for (RtmpMediaMessage message : rtmpGopCache) {
             channel.writeAndFlush(RtmpMediaMessage.toRtmpMessage(message));
         }
     }
@@ -100,7 +100,7 @@ public class Stream {
     public void closeStream() {
         log.info("Closing stream");
         RtmpMessage eof = MessageProvider.userControlMessageEvent(RtmpConstants.STREAM_EOF);
-        for (Channel channel:subscribers) {
+        for (Channel channel : subscribers) {
             channel.writeAndFlush(eof).addListener(ChannelFutureListener.CLOSE);
         }
     }

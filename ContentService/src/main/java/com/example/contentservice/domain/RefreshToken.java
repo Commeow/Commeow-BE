@@ -16,12 +16,12 @@ public class RefreshToken {
     private String refreshToken;
     private String userId;
 
-    public RefreshToken(String refreshToken, String userId){
+    public RefreshToken(String refreshToken, String userId) {
         this.refreshToken = refreshToken;
         this.userId = userId;
     }
 
-    public RefreshToken updateToken(String token){
+    public RefreshToken updateToken(String token) {
         this.refreshToken = token;
         return this;
     }

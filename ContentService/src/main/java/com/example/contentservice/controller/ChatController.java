@@ -21,7 +21,7 @@ public class ChatController {
     @ConnectMapping
     public void onConnect(RSocketRequester requester, @Payload Object chattingAddress) {
         log.info("onConnect");
-        chatService.onConnect(requester, (String)chattingAddress);
+        chatService.onConnect(requester, (String) chattingAddress);
     }
 
     @MessageMapping("message")

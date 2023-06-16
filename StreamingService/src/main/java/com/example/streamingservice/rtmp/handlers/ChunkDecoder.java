@@ -28,6 +28,7 @@ public class ChunkDecoder extends ReplayingDecoder<ChunkDecoder.DecodeState> {
 
     private RtmpHeader currentHeader;
     private ByteBuf currentPayload;
+
     public enum DecodeState {
         READ_HEADER, PROCESS_HEADER, PROCESS_PAYLOAD
     }
@@ -78,11 +79,11 @@ public class ChunkDecoder extends ReplayingDecoder<ChunkDecoder.DecodeState> {
                 sendAcknowledgement(channelHandlerContext, currentHeader.getHeaderLength() + currentHeader.getMessageLength());
 
                 switch (currentHeader.getType()) {
-                    case RTMP_MSG_CONTROL_TYPE_SET_CHUNK_SIZE               -> handleChunkSize(currentPayload);
-                    case RTMP_MSG_CONTROL_TYPE_WINDOW_ACKNOWLEDGEMENT_SIZE  -> handleWindowAckSize(currentPayload);
-                    case RTMP_MSG_CONTROL_TYPE_ACKNOWLEDGEMENT              -> handleAck(currentPayload);
-                    case RTMP_MSG_CONTROL_TYPE_ABORT                        -> handleAbort(currentPayload);
-                    default                                                 -> out.add(message);
+                    case RTMP_MSG_CONTROL_TYPE_SET_CHUNK_SIZE -> handleChunkSize(currentPayload);
+                    case RTMP_MSG_CONTROL_TYPE_WINDOW_ACKNOWLEDGEMENT_SIZE -> handleWindowAckSize(currentPayload);
+                    case RTMP_MSG_CONTROL_TYPE_ACKNOWLEDGEMENT -> handleAck(currentPayload);
+                    case RTMP_MSG_CONTROL_TYPE_ABORT -> handleAbort(currentPayload);
+                    default -> out.add(message);
                 }
             }
         }

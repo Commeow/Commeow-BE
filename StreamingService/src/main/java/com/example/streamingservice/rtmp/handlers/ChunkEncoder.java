@@ -20,10 +20,10 @@ public class ChunkEncoder extends MessageToByteEncoder<RtmpMessage> {
     @Override
     protected void encode(ChannelHandlerContext channelHandlerContext, RtmpMessage message, ByteBuf byteBuf) {
         switch (message.header().getType()) {
-            case RTMP_MSG_CONTROL_TYPE_SET_CHUNK_SIZE   -> handleSetChunkSize(message, byteBuf);
-            case RTMP_MSG_USER_CONTROL_TYPE_AUDIO       -> handleAudioMessage(message, byteBuf);
-            case RTMP_MSG_USER_CONTROL_TYPE_VIDEO       -> handleVideoMessage(message, byteBuf);
-            default                                     -> handleDefault(message, byteBuf);
+            case RTMP_MSG_CONTROL_TYPE_SET_CHUNK_SIZE -> handleSetChunkSize(message, byteBuf);
+            case RTMP_MSG_USER_CONTROL_TYPE_AUDIO -> handleAudioMessage(message, byteBuf);
+            case RTMP_MSG_USER_CONTROL_TYPE_VIDEO -> handleVideoMessage(message, byteBuf);
+            default -> handleDefault(message, byteBuf);
         }
     }
 
@@ -113,17 +113,17 @@ public class ChunkEncoder extends MessageToByteEncoder<RtmpMessage> {
 
     private byte[] encodeFmtAndChunkId(int fmt, int cid) {
         if (cid >= 64 + 255) {
-            return new byte[] {
+            return new byte[]{
                     (byte) ((fmt << 6) | 1),
                     (byte) ((cid - 64) & 0xff),
                     (byte) (((cid - 64) >> 8) & 0xff)};
         } else if (cid >= 64) {
-            return new byte[] {
+            return new byte[]{
                     (byte) ((fmt << 6)),
                     (byte) ((cid - 64) & 0xff)
             };
         } else {
-            return new byte[] { (byte) ((fmt << 6) | cid) };
+            return new byte[]{(byte) ((fmt << 6) | cid)};
         }
     }
 }

@@ -29,9 +29,13 @@ import java.time.Duration;
 public abstract class RtmpServer implements CommandLineRunner {
 
     protected abstract RtmpMessageHandler getRtmpMessageHandler();
+
     protected abstract InboundConnectionLogger getInboundConnectionLogger();
+
     protected abstract HandshakeHandler getHandshakeHandler();
+
     protected abstract ChunkDecoder getChunkDecoder();
+
     protected abstract ChunkEncoder getChunkEncoder();
 
     @Autowired

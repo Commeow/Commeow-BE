@@ -37,8 +37,9 @@ public class Amf0Rules {
         TYPED_OBJECT(0x10);
 
         // 0x09 end marker
-        private static final byte[] OBJECT_END_MARKER = new byte[] { 0x00, 0x00, 0x09 };
+        private static final byte[] OBJECT_END_MARKER = new byte[]{0x00, 0x00, 0x09};
         private final int value;
+
         Type(int value) {
             this.value = value;
         }
@@ -50,12 +51,12 @@ public class Amf0Rules {
         public static Type getType(Object value) {
             if (value == null) return NULL;
             if (value instanceof Number) return NUMBER;
-            if (value instanceof Boolean)       return BOOLEAN;
-            if (value instanceof String)        return STRING;
-            if (value instanceof Amf0Object)    return OBJECT;
-            if (value instanceof Map)           return ECMA_ARRAY;
-            if (value instanceof Object[])      return STRICT_ARRAY;
-            if (value instanceof Instant)       return DATE;
+            if (value instanceof Boolean) return BOOLEAN;
+            if (value instanceof String) return STRING;
+            if (value instanceof Amf0Object) return OBJECT;
+            if (value instanceof Map) return ECMA_ARRAY;
+            if (value instanceof Object[]) return STRICT_ARRAY;
+            if (value instanceof Instant) return DATE;
 
             throw new RuntimeException("Unsupported type: " + value.getClass());
         }
@@ -78,6 +79,7 @@ public class Amf0Rules {
             };
         }
     }
+
     /*
     데이터 인코딩
      */
@@ -87,17 +89,19 @@ public class Amf0Rules {
         buf.writeByte((byte) type.getValue());
 
         switch (type) {
-            case NUMBER         -> encodeNumber(buf, (Number) value);
-            case BOOLEAN        -> encodeBoolean(buf, (Boolean) value);
-            case STRING         -> encodeString(buf, (String) value);
-            case ECMA_ARRAY     -> encodeEcmaArray(buf, (Map<String, Object>) value);
-            case OBJECT         -> encodeAmf0Object(buf, (Map<String, Object>) value);
-            case STRICT_ARRAY   -> encodeArray(buf, (Object[]) value);
-            case DATE           -> encodeDate(buf, (Instant) value);
-            case NULL           -> {}
-            default             -> throw new RuntimeException("Unsupported type " + value);
+            case NUMBER -> encodeNumber(buf, (Number) value);
+            case BOOLEAN -> encodeBoolean(buf, (Boolean) value);
+            case STRING -> encodeString(buf, (String) value);
+            case ECMA_ARRAY -> encodeEcmaArray(buf, (Map<String, Object>) value);
+            case OBJECT -> encodeAmf0Object(buf, (Map<String, Object>) value);
+            case STRICT_ARRAY -> encodeArray(buf, (Object[]) value);
+            case DATE -> encodeDate(buf, (Instant) value);
+            case NULL -> {
+            }
+            default -> throw new RuntimeException("Unsupported type " + value);
         }
     }
+
     /*
     네트워크 바이트 순서(network byte order)에서
     Number type 데이터는 항상
@@ -120,7 +124,7 @@ public class Amf0Rules {
     }
 
     private static void encodeAmf0Object(ByteBuf buf, Map<String, Object> amf0Object) {
-        for (Map.Entry<String, Object> entry: amf0Object.entrySet()) {
+        for (Map.Entry<String, Object> entry : amf0Object.entrySet()) {
             encodeString(buf, entry.getKey());
             encode(buf, entry.getValue());
         }
@@ -134,7 +138,7 @@ public class Amf0Rules {
 
     private static void encodeArray(ByteBuf buf, Object[] array) {
         buf.writeInt(array.length);
-        for (Object o:array) {
+        for (Object o : array) {
             encode(buf, o);
         }
     }
@@ -146,10 +150,11 @@ public class Amf0Rules {
     }
 
     public static void encodeList(ByteBuf buf, List<Object> list) {
-        for (Object obj:list) {
+        for (Object obj : list) {
             encode(buf, obj);
         }
     }
+
     /*
     데이터 디코딩
      */
@@ -157,18 +162,18 @@ public class Amf0Rules {
         Type type = Type.getFromHexValue(buf.readByte());
 
         return switch (type) {
-            case NUMBER         -> decodeNumber(buf);
-            case BOOLEAN        -> decodeBoolean(buf);
-            case STRING         -> decodeString(buf);
-            case ECMA_ARRAY     -> decodeEcmaArray(buf);
-            case OBJECT         -> decodeAmf0Object(buf);
-            case STRICT_ARRAY   -> decodeArray(buf);
-            case DATE           -> decodeDate(buf);
-            case LONG_STRING    -> decodeLongString(buf);
-            case    NULL,
+            case NUMBER -> decodeNumber(buf);
+            case BOOLEAN -> decodeBoolean(buf);
+            case STRING -> decodeString(buf);
+            case ECMA_ARRAY -> decodeEcmaArray(buf);
+            case OBJECT -> decodeAmf0Object(buf);
+            case STRICT_ARRAY -> decodeArray(buf);
+            case DATE -> decodeDate(buf);
+            case LONG_STRING -> decodeLongString(buf);
+            case NULL,
                     UNDEFINED,
                     UNSUPPORTED -> null;
-            default             -> throw new RuntimeException("Unsupported type " + type);
+            default -> throw new RuntimeException("Unsupported type " + type);
         };
     }
 
@@ -180,18 +185,22 @@ public class Amf0Rules {
         }
         return result;
     }
+
     public static Object decodeNumber(ByteBuf buf) {
         return Double.longBitsToDouble(buf.readLong());
     }
+
     public static Object decodeBoolean(ByteBuf buf) {
         return buf.readByte() == 0x01;
     }
+
     public static String decodeString(ByteBuf buf) {
         short size = buf.readShort();
         byte[] bytes = new byte[size];
         buf.readBytes(bytes);
         return new String(bytes);
     }
+
     public static Object decodeAmf0Object(ByteBuf buf) {
         Map<String, Object> map = new Amf0Object();
         byte[] endMarker = new byte[3];
@@ -205,10 +214,12 @@ public class Amf0Rules {
         }
         return map;
     }
+
     public static Object decodeEcmaArray(ByteBuf buf) {
         buf.readInt();
         return decodeAmf0Object(buf);
     }
+
     public static Object[] decodeArray(ByteBuf buf) {
         int len = buf.readInt();
         final Object[] array = new Object[len];
@@ -217,10 +228,12 @@ public class Amf0Rules {
         }
         return array;
     }
+
     public static Instant decodeDate(ByteBuf buf) {
         long epochSecond = buf.readLong();
         return Instant.ofEpochSecond(epochSecond);
     }
+
     public static String decodeLongString(ByteBuf buf) {
         int size = buf.readInt();
         byte[] bytes = new byte[size];
