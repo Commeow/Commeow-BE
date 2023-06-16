@@ -11,5 +11,4 @@ public class SignupRequestDto {
     private String userId;
     private String password;
     private String nickname;
-    private String memberRole;
 }

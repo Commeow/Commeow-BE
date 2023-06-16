@@ -72,7 +72,7 @@ public class MemberServiceTest {
     @Test
     @DisplayName("회원가입 성공 테스트")
     void testSignUp() {
-        SignupRequestDto signupRequestDto = new SignupRequestDto("user2", "password2", "nickname2", "USER");
+        SignupRequestDto signupRequestDto = new SignupRequestDto("user2", "password2", "nickname2");
         Member USER2 = new Member(2L, "user2", "password2", "nickname2", "streamKey2", MemberRoleEnum.USER);
         Channel USER2_CHANNEL = new Channel(2L, "title2", "streamer2", "chattingAddress2", false);
 
@@ -105,7 +105,7 @@ public class MemberServiceTest {
     @Test
     @DisplayName("회원가입 실패 테스트 : 중복된 아이디")
     void testDuplicatedIDSignUp() {
-        SignupRequestDto signupRequestDto = new SignupRequestDto("user1", "password2", "nickname2", "USER");
+        SignupRequestDto signupRequestDto = new SignupRequestDto("user1", "password2", "nickname2");
 
         StepVerifier.create(memberService.signup(signupRequestDto))
                 .expectErrorSatisfies(throwable -> {
@@ -117,7 +117,7 @@ public class MemberServiceTest {
     @Test
     @DisplayName("회원가입 실패 테스트 : 중복된 닉네임")
     void testDuplicatedNicknameSignUp() {
-        SignupRequestDto signupRequestDto = new SignupRequestDto("user2", "password2", "nickname1", "USER");
+        SignupRequestDto signupRequestDto = new SignupRequestDto("user2", "password2", "nickname1");
 
         when(memberRepository.existsByUserId("user2")).thenReturn(Mono.just(false));
 
@@ -131,7 +131,7 @@ public class MemberServiceTest {
     @Test
     @DisplayName("회원가입 실패 테스트 : 회원 정보 저장 실패")
     void testSaveMemberFailure() {
-        SignupRequestDto signupRequestDto = new SignupRequestDto("user2", "password2", "nickname2", "USER");
+        SignupRequestDto signupRequestDto = new SignupRequestDto("user2", "password2", "nickname2");
 
         when(memberRepository.existsByUserId("user2")).thenReturn(Mono.just(false));
         when(memberRepository.existsByNickname("nickname2")).thenReturn(Mono.just(false));
@@ -148,7 +148,7 @@ public class MemberServiceTest {
     @Test
     @DisplayName("회원가입 실패 테스트 : 채널 정보 저장 실패")
     void testSaveChannelFailure() {
-        SignupRequestDto signupRequestDto = new SignupRequestDto("user2", "password2", "nickname2", "USER");
+        SignupRequestDto signupRequestDto = new SignupRequestDto("user2", "password2", "nickname2");
         Member USER2 = new Member(2L, "user2", "password2", "nickname2", "streamKey2", MemberRoleEnum.USER);
 
         when(memberRepository.existsByUserId("user2")).thenReturn(Mono.just(false));

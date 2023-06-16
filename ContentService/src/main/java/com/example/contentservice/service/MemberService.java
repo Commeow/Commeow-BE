@@ -43,8 +43,7 @@ public class MemberService {
                                 .flatMap(duplicated -> {
                                     if (duplicated) return Mono.error(new IllegalArgumentException("중복된 닉네임입니다."));
                                     else return memberRepository
-                                            .save(new Member(signupRequestDto, passwordEncoder.encode(signupRequestDto.getPassword()),
-                                                    signupRequestDto.getMemberRole().equals("ADMIN") ? MemberRoleEnum.ADMIN : MemberRoleEnum.USER))
+                                            .save(new Member(signupRequestDto, passwordEncoder.encode(signupRequestDto.getPassword()), MemberRoleEnum.USER))
                                             .onErrorResume(exception -> {
                                                 return Mono.error(new RuntimeException("회원 정보 저장 오류"));
                                             })
