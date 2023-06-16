@@ -7,21 +7,3 @@ comment:
   require_changes: false
   branches:
     - main
-transcode-server:
-  build:
-    context: tanscodingservice
-    dockerfile: Dockerfile
-  ports:
-    - "8083:8083"
-  environment:
-    - RTMP_SERVER=rtmp://rtmp-server:1935
-  volumes:
-    - stream-volume:/home/streams
-  content-server:
-    build:
-      context: contentservice
-      dockerfile: Dockerfile
-    ports:
-      - "8081:8081"
-    volumes:
-      - stream-volume:/home/streams
