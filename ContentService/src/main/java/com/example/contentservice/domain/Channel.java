@@ -1,6 +1,5 @@
 package com.example.contentservice.domain;
 
-import com.example.contentservice.dto.channel.ChannelRequestDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -28,12 +27,12 @@ public class Channel {
         this.onAir = false;
     }
 
-    public Channel channelOn(){
+    public Channel channelOn() {
         this.onAir = true;
         return this;
     }
 
-    public Channel channelOff(){
+    public Channel channelOff() {
         this.onAir = false;
         return this;
     }

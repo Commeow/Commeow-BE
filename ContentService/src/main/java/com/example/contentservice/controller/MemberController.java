@@ -32,7 +32,7 @@ public class MemberController {
 
     @GetMapping("/logout")
     public Mono<ResponseEntity<String>> logout(Mono<Principal> userDetails) {
-        return userDetails.flatMap(principal-> {
+        return userDetails.flatMap(principal -> {
             return memberService.logout(principalUtil.getPrincipal(principal).getUserId());
         });
     }

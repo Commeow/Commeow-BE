@@ -8,7 +8,7 @@ import java.security.Principal;
 
 @Component
 public class PrincipalUtil {
-    public Member getPrincipal(Principal principal){
+    public Member getPrincipal(Principal principal) {
         if (principal instanceof Authentication) {
             Authentication authentication = (Authentication) principal;
             Object principalObject = authentication.getPrincipal();

@@ -5,9 +5,10 @@ import io.netty.buffer.Unpooled;
 
 public record RtmpMediaMessage(RtmpHeader header, byte[] payload) {
 
-    public static RtmpMediaMessage  fromRtmpMessage(RtmpMessage message) {
+    public static RtmpMediaMessage fromRtmpMessage(RtmpMessage message) {
         return new RtmpMediaMessage(message.header(), ByteBufUtil.getBytes(message.payload()));
     }
+
     public static RtmpMessage toRtmpMessage(RtmpMediaMessage message) {
         return new RtmpMessage(message.header(), Unpooled.wrappedBuffer(message.payload()));
     }

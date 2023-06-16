@@ -50,6 +50,7 @@ public class RtmpMessageHandler extends MessageToMessageDecoder<RtmpMessage> {
         }
         super.handlerRemoved(ctx);
     }
+
     @Override
     protected void decode(ChannelHandlerContext channelHandlerContext, RtmpMessage in, List<Object> out) {
         short type = in.header().getType();

@@ -13,9 +13,11 @@ public class StreamContext {
     public void addStream(Stream stream) {
         context.put(stream.getStreamName(), stream);
     }
+
     public void deleteStream(String streamName) {
         context.remove(streamName);
     }
+
     public Stream getStream(String streamName) {
         if (streamName == null) {
             return null;

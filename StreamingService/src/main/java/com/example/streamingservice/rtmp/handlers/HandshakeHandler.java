@@ -64,7 +64,7 @@ public class HandshakeHandler extends ByteToMessageDecoder {
 
     private void generateS0S1S2(ChannelHandlerContext channelHandlerContext) {
         ByteBuf resp = Unpooled.buffer(RtmpConstants.RTMP_HANDSHAKE_VERSION_LENGTH
-         + RtmpConstants.RTMP_HANDSHAKE_SIZE + RtmpConstants.RTMP_HANDSHAKE_SIZE);
+                + RtmpConstants.RTMP_HANDSHAKE_SIZE + RtmpConstants.RTMP_HANDSHAKE_SIZE);
 
         // S0
         resp.writeByte(RtmpConstants.RTMP_VERSION);

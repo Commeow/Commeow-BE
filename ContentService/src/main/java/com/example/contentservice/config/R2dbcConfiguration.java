@@ -41,7 +41,7 @@ public class R2dbcConfiguration extends AbstractR2dbcConfiguration {
     }
 
     @Bean
-    public R2dbcEntityTemplate r2dbcEntityTemplate(ConnectionFactory connectionFactory){
+    public R2dbcEntityTemplate r2dbcEntityTemplate(ConnectionFactory connectionFactory) {
         return new R2dbcEntityTemplate(connectionFactory);
     }
 }

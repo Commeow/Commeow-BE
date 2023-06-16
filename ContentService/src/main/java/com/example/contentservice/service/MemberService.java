@@ -13,7 +13,6 @@ import com.example.contentservice.repository.ChannelRepository;
 import com.example.contentservice.repository.MemberRepository;
 import com.example.contentservice.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
