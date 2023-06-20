@@ -33,6 +33,4 @@ public class PaymentController {
     public IamportResponse<Payment> paymentByImpUid(@PathVariable("imp_uid") String imp_uid) throws IamportResponseException, IOException {
         return iamportClient.paymentByImpUid(imp_uid);
     }
-
-
 }
