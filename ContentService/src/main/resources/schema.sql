@@ -16,3 +16,10 @@ CREATE TABLE member
     stream_key VARCHAR(255) NOT NULL,
     role       VARCHAR(50)  NOT NULL
 );
+
+CREATE TABLE points
+(
+    id BIGSERIAL PRIMARY KEY,
+    user_id VARCHAR(255) NOT NULL,
+    points INTEGER NOT NULL
+);
