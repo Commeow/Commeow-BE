@@ -111,7 +111,7 @@ public class MemberControllerTest {
     public void testLogout() {
         Member USER1 = new Member(1L, "user1", "password1", "nickname1", "streamkey1", MemberRoleEnum.USER);
 
-        when(principalUtil.getPrincipal(Mockito.any(Principal.class))).thenReturn(USER1);
+        when(principalUtil.getMember(Mockito.any(Principal.class))).thenReturn(USER1);
         when(memberService.logout("user1")).thenReturn(Mono.just(ResponseEntity.ok("삭제 성공 (∩^o^)⊃━☆")));
 
         this.webTestClient
