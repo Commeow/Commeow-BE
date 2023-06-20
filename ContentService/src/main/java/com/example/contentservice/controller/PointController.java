@@ -22,7 +22,7 @@ public class PointController {
     private final PrincipalUtil principalUtil;
 
     @PostMapping("/charge")
-    public Mono<ResponseEntity<String>> addPoint(Mono<Principal> userDetails, @RequestBody PointRequestDto pointRequestDto) {
+    public Mono<ResponseEntity<Integer>> addPoint(Mono<Principal> userDetails, @RequestBody PointRequestDto pointRequestDto) {
         return userDetails.flatMap(principal-> {
             return pointService.addPoint(principalUtil.getMember(principal), pointRequestDto);
         });

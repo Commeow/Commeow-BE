@@ -19,11 +19,12 @@ public class PointService {
 
     private final PointRepository pointRepository;
 
-    public Mono<ResponseEntity<String>> addPoint(Member member, PointRequestDto pointRequestDto) {
+    public Mono<ResponseEntity<Integer>> addPoint(Member member, PointRequestDto pointRequestDto) {
         return pointRepository.findByUserId(member.getUserId())
                 .switchIfEmpty(Mono.error(() -> new NoSuchElementException("존재하지 않는 사용자입니다.")))
                 .flatMap(points -> {
-                    return pointRepository.save(points.addPoints(pointRequestDto.getPoints()));
-                }).thenReturn(ResponseEntity.ok("Success"));
+                    return pointRepository.save(points.addPoints(pointRequestDto.getPoints()))
+                            .map(savedPoints -> ResponseEntity.ok(savedPoints.getPoints()));
+                });
     }
 }
