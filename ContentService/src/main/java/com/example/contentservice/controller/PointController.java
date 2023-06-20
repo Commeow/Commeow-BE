@@ -23,8 +23,15 @@ public class PointController {
 
     @PostMapping("/charge")
     public Mono<ResponseEntity<Integer>> addPoint(Mono<Principal> userDetails, @RequestBody PointRequestDto pointRequestDto) {
-        return userDetails.flatMap(principal-> {
+        return userDetails.flatMap(principal -> {
             return pointService.addPoint(principalUtil.getMember(principal), pointRequestDto);
+        });
+    }
+
+    @PostMapping("/spend")
+    public Mono<ResponseEntity<Integer>> spendPoint(Mono<Principal> userDetails, @RequestBody PointRequestDto pointRequestDto) {
+        return userDetails.flatMap(principal -> {
+            return pointService.usePoint(principalUtil.getMember(principal), pointRequestDto);
         });
     }
 }

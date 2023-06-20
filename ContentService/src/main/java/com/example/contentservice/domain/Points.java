@@ -25,4 +25,9 @@ public class Points {
         this.points += points;
         return this;
     }
+
+    public Points usePoints(int points) {
+        this.points -= points;
+        return this;
+    }
 }
