@@ -7,7 +7,8 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class PointRequestDto {
-
+public class PointUseDto {
+    private String streamer;
     private int points;
+    private String message;
 }
