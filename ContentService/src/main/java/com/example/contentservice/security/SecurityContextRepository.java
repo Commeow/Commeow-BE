@@ -56,7 +56,7 @@ public class SecurityContextRepository implements ServerSecurityContextRepositor
                                                                 return this.authenticationManager.authenticate(refreshAuth)
                                                                         .map(SecurityContextImpl::new);
                                                             } else
-                                                                return Mono.error(new RuntimeException("토큰이 없잖아! ╰（‵□′）╯"));
+                                                                return Mono.error(new RuntimeException("토큰이 없습니다."));
                                                         });
                                             });
                                 }
