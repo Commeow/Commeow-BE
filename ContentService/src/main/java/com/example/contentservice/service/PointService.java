@@ -8,6 +8,7 @@ import com.example.contentservice.repository.MemberRepository;
 import com.example.contentservice.repository.PointRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
@@ -21,6 +22,7 @@ public class PointService {
 
     private final PointRepository pointRepository;
     private final MemberRepository memberRepository;
+    private final DatabaseClient databaseClient;
 
     public Mono<ResponseEntity<Integer>> addPoint(Member member, PointChargeDto pointChargeDto) {
         return pointRepository.findByUserId(member.getUserId())
@@ -41,13 +43,24 @@ public class PointService {
                                 return Mono.error(() -> new NoSuchElementException("포인트가 부족합니다."));
                             }
 
-                            return pointRepository.save(memberPoints.usePoints(pointUseDto.getPoints()))
-                                    .flatMap(savedMemberPoints -> pointRepository.findByUserId(streamer.getUserId())
-                                            .flatMap(streamerPoints -> {
-                                                Points updatedStreamerPoints = streamerPoints.addPoints(pointUseDto.getPoints());
-                                                return pointRepository.save(updatedStreamerPoints)
-                                                        .map(savedStreamerPoints -> ResponseEntity.ok(savedMemberPoints.getPoints()));
-                                            }));
+                            return databaseClient.sql("SELECT * FROM points WHERE user_id = :userId FOR UPDATE")
+                                    .bind("userId", streamer.getUserId())
+                                    .fetch()
+                                    .one()
+                                    .flatMap(row -> {
+                                        Points updatedStreamerPoints = new Points(
+                                                (Long) row.get("id"),
+                                                (String) row.get("user_id"),
+                                                (int) row.get("points")
+                                        );
+                                        updatedStreamerPoints.addPoints(pointUseDto.getPoints());
+
+                                        return pointRepository.save(updatedStreamerPoints)
+                                                .flatMap(savedStreamerPoints -> {
+                                                    return pointRepository.save(memberPoints.usePoints(pointUseDto.getPoints()))
+                                                            .map(savedMemberPoints -> ResponseEntity.ok(savedMemberPoints.getPoints()));
+                                                });
+                                    });
                         }));
     }
 }
