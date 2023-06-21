@@ -50,7 +50,7 @@ public class MemberControllerTest {
     @DisplayName("회원가입 POST 성공 테스트")
     public void testSignup() {
         SignupRequestDto signupRequestDto =
-                new SignupRequestDto("user1", "password1", "nickname1", "USER");
+                new SignupRequestDto("user1", "password1", "nickname1");
 
         when(memberService.signup(Mockito.any(SignupRequestDto.class)))
                 .thenReturn(Mono.just(ResponseEntity.ok(signupRequestDto.getNickname() + "님 회원 가입 완료 o(〃＾▽＾〃)o")));
