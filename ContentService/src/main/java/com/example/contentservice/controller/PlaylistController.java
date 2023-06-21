@@ -28,9 +28,9 @@ public class PlaylistController {
         String fileName = requestUrl.split("/streams/")[1];
 
         // "무복사" 파일 전송을 지원
-        ZeroCopyHttpOutputMessage zeroCopyResponse =
-                (ZeroCopyHttpOutputMessage) response;
+        ZeroCopyHttpOutputMessage zeroCopyResponse = (ZeroCopyHttpOutputMessage) response;
         HttpHeaders headers = response.getHeaders();
+
         // 전송헤더에 파일명을 셋팅
         headers.setContentDispositionFormData(fileName, fileName);
         headers.setAccessControlAllowOrigin("*");
@@ -47,7 +47,6 @@ public class PlaylistController {
             return zeroCopyResponse.setComplete();
         }
 
-        return zeroCopyResponse
-                .writeWith(ans, 0, ans.toFile().length());
+        return zeroCopyResponse.writeWith(ans, 0, ans.toFile().length());
     }
 }
