@@ -8,7 +8,7 @@ import java.security.Principal;
 
 @Component
 public class PrincipalUtil {
-    public Member getPrincipal(Principal principal) {
+    public Member getMember(Principal principal) {
         if (principal instanceof Authentication) {
             Authentication authentication = (Authentication) principal;
             Object principalObject = authentication.getPrincipal();
@@ -17,6 +17,6 @@ public class PrincipalUtil {
                 return userDetails.getMember();
             }
         }
-        throw new RuntimeException("당신 누구야! Σ(っ °Д °;)っ");
+        throw new RuntimeException("존재하지 않는 사용자입니다.");
     }
 }

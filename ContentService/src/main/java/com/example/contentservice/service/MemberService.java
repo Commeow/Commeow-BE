@@ -1,9 +1,6 @@
 package com.example.contentservice.service;
 
-import com.example.contentservice.domain.Channel;
-import com.example.contentservice.domain.Member;
-import com.example.contentservice.domain.MemberRoleEnum;
-import com.example.contentservice.domain.RefreshToken;
+import com.example.contentservice.domain.*;
 import com.example.contentservice.dto.member.LoginRequestDto;
 import com.example.contentservice.dto.member.LoginResponseDto;
 import com.example.contentservice.dto.member.SignupRequestDto;
@@ -11,6 +8,7 @@ import com.example.contentservice.dto.member.TokenDto;
 import com.example.contentservice.jwt.JwtUtil;
 import com.example.contentservice.repository.ChannelRepository;
 import com.example.contentservice.repository.MemberRepository;
+import com.example.contentservice.repository.PointRepository;
 import com.example.contentservice.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -29,32 +27,36 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
     private final MemberRepository memberRepository;
     private final ChannelRepository channelRepository;
+    private final PointRepository pointRepository;
     private final RefreshTokenRepository refreshTokenRepository;
 
     @Transactional
     public Mono<ResponseEntity<String>> signup(SignupRequestDto signupRequestDto) {
-        return memberRepository
-                .existsByUserId(signupRequestDto.getUserId())
+        return memberRepository.existsByUserId(signupRequestDto.getUserId())
                 .flatMap(exists -> {
-                    if (exists) return Mono.error(new IllegalArgumentException("중복된 아이디입니다."));
-                    else {
-                        return memberRepository
-                                .existsByNickname(signupRequestDto.getNickname())
+                    if (exists) {
+                        return Mono.error(new IllegalArgumentException("중복된 아이디입니다."));
+                    } else {
+                        return memberRepository.existsByNickname(signupRequestDto.getNickname())
                                 .flatMap(duplicated -> {
-                                    if (duplicated) return Mono.error(new IllegalArgumentException("중복된 닉네임입니다."));
-                                    else return memberRepository
-                                            .save(new Member(signupRequestDto, passwordEncoder.encode(signupRequestDto.getPassword()), MemberRoleEnum.USER))
-                                            .onErrorResume(exception -> {
-                                                return Mono.error(new RuntimeException("회원 정보 저장 오류"));
-                                            })
-                                            .flatMap(member -> {
-                                                return channelRepository
-                                                        .save(new Channel(member.getNickname()))
-                                                        .onErrorResume(exception -> {
-                                                            return Mono.error(new RuntimeException("회원 정보 저장 오류"));
-                                                        });
-                                            })
-                                            .thenReturn(ResponseEntity.ok(signupRequestDto.getNickname() + "님 회원 가입 완료"));
+                                    if (duplicated) {
+                                        return Mono.error(new IllegalArgumentException("중복된 닉네임입니다."));
+                                    } else {
+                                        Mono<Member> memberMono = memberRepository.save(new Member(signupRequestDto, passwordEncoder.encode(signupRequestDto.getPassword()), MemberRoleEnum.USER))
+                                                .onErrorResume(exception -> Mono.error(new RuntimeException("회원 정보 저장 오류")));
+
+                                        return memberMono
+                                                .flatMap(member -> {
+                                                    Mono<Channel> channelMono = channelRepository.save(new Channel(member.getNickname()))
+                                                            .onErrorResume(exception -> Mono.error(new RuntimeException("회원 정보 저장 오류")));
+
+                                                    Mono<Points> pointMono = pointRepository.save(new Points(member.getUserId()))
+                                                            .onErrorResume(exception -> Mono.error(new RuntimeException("회원 정보 저장 오류")));
+
+                                                    return Mono.zip(channelMono, pointMono)
+                                                            .thenReturn(member);
+                                                }).thenReturn(ResponseEntity.ok(signupRequestDto.getNickname() + "님 회원 가입 완료"));
+                                    }
                                 });
                     }
                 });

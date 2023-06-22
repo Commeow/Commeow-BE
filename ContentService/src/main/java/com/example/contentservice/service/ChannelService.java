@@ -43,7 +43,7 @@ public class ChannelService {
         String streamKey = streamerCheckRequestDto.getStreamKey();
 
         return memberRepository.findByNickname(streamer)
-                .switchIfEmpty(Mono.error(new NoSuchElementException("사용자를 찾을 수 없습니다.")))
+                .switchIfEmpty(Mono.error(new NoSuchElementException("존재하지 않는 사용자입니다.")))
                 .filter(member -> member.getStreamKey().equals(streamKey))
                 .switchIfEmpty(Mono.error(new AuthenticationException("스트림 키를 다시 확인해주세요.")))
                 .flatMap(member -> {

@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,6 +21,7 @@ public class WebfluxSecurityConfiguration {
 
     private final AuthenticationManager authenticationManager;
     private final SecurityContextRepository securityContextRepository;
+    private final CORSFilter corsFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -34,7 +36,7 @@ public class WebfluxSecurityConfiguration {
                 .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers("/members/signup", "/members/login", "ws/**").permitAll()
-                        .pathMatchers("/broadcasts/**", "/streams/**").permitAll()
+                        .pathMatchers("/broadcasts/**", "/streams/**", "/verifyIamport/**").permitAll()
                         .anyExchange().authenticated())
                 .securityContextRepository(securityContextRepository)
                 .authenticationManager(authenticationManager)
@@ -42,7 +44,8 @@ public class WebfluxSecurityConfiguration {
                         .accessDeniedHandler((swe, e) ->
                                 Mono.fromRunnable(() -> swe.getResponse().setStatusCode(HttpStatus.FORBIDDEN)))
                         .authenticationEntryPoint((swe, e) ->
-                                Mono.fromRunnable(() -> swe.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED))));
+                                Mono.fromRunnable(() -> swe.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED))))
+                .addFilterAt(corsFilter.corsWebFilter(), SecurityWebFiltersOrder.CORS);
 
         return serverHttpSecurity.build();
     }
