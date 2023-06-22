@@ -7,7 +7,9 @@ import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -17,6 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ChatService {
 
     private final Map<String, List<RSocketRequester>> participants = new ConcurrentHashMap<>();
+    private final Map<String, Sinks.Many<Integer>> participantCountSinks = new ConcurrentHashMap<>();
 
     public void onConnect(RSocketRequester requester, String chattingAddress) {
         requester.rsocket()
@@ -27,14 +30,14 @@ public class ChatService {
                     else
                         participants.put(chattingAddress, Collections.synchronizedList(new ArrayList<>(Arrays.asList(requester))));
 
-                    log.info("Successfully connected to the socket");
+                    updateParticipantCount(chattingAddress);
                 })
                 .doOnError(error -> {
                     log.info(error.getMessage());
                 })
                 .doFinally(consumer -> {
-                    log.info("Socket Connection Closed");
                     participants.get(chattingAddress).remove(requester);
+                    updateParticipantCount(chattingAddress);
                 })
                 .subscribe();
     }
@@ -54,5 +57,16 @@ public class ChatService {
                 })
                 .subscribe();
     }
-}
 
+    public Flux<Integer> stream(String chattingAddress) {
+        String address = chattingAddress.substring(1, chattingAddress.length() - 1);
+        return participantCountSinks.get(address).asFlux();
+    }
+
+    private void updateParticipantCount(String chattingAddress) {
+        List<RSocketRequester> participantsList = participants.get(chattingAddress);
+        int count = participantsList.size();
+        participantCountSinks.computeIfAbsent(chattingAddress, key -> Sinks.many().replay().latest())
+                .tryEmitNext(count);
+    }
+}

@@ -17,6 +17,7 @@ import static io.r2dbc.spi.ConnectionFactoryOptions.*;
 @EnableR2dbcAuditing
 @EnableR2dbcRepositories
 public class R2dbcConfiguration extends AbstractR2dbcConfiguration {
+
     @Value("${spring.r2dbc.url}")
     private String host;
     @Value("${spring.r2dbc.username}")
