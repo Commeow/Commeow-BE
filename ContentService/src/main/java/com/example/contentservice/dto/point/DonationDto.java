@@ -13,5 +13,6 @@ public class DonationDto {
     private String streamer;
     private String nickname;
     private int points;
+    private String message;
     private String chattingAddress;
 }
