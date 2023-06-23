@@ -38,8 +38,6 @@ public class ProcessManagingService {
     @Value("${stream.directory}")
     private String path;
 
-    @Value("${thumbnail.directory}")
-    private String thumbnailPath;
 
     // 동시성 떄문에 사용
     private final ConcurrentHashMap<String, Process> processMap = new ConcurrentHashMap<>();
@@ -48,28 +46,17 @@ public class ProcessManagingService {
     private final AtomicBoolean stopSearching = new AtomicBoolean(true);
     private final AtomicBoolean showMessage = new AtomicBoolean(true);
 
-
-    public ProcessManagingService() {
-        init();
-    }
-
-    // 생성자 또는 @PostConstruct 된 메서드에서 실행
-    private void init() {
-        deleteFile.scheduleAtFixedRate(this::deleteOldFiles, delete_interval, delete_interval, TimeUnit.MINUTES);
-        deleteFile.scheduleAtFixedRate(() -> deleteOldThumbnails(thumbnailPath), delete_interval, delete_interval, TimeUnit.MINUTES);
-    }
-
     private Flux<Path> walkFilesFlux(Path path) {
         try {
             return Flux.fromStream(Files.walk(path)
-                    .filter(file -> file.toString().endsWith(".ts")));
+                    .filter(file -> file.toString().endsWith(".ts") || file.toString().endsWith(".jpg")));
         } catch (IOException e) {
             log.error("Failed to walk files", e);
             return Flux.empty();
         }
     }
 
-    private void deleteOldFiles() {
+    private void deleteOldTsAndJpgFiles(String owner) {
         if (stopSearching.get()) {
             if (showMessage.getAndSet(false)) {
                 log.info("No longer searching for files.");
@@ -77,12 +64,13 @@ public class ProcessManagingService {
             return;
         }
 
-        log.info("Deleting .ts files ...");
+        log.info("Deleting .ts and .jpg files ({}) ...", owner);
         Path directoryPath = Paths.get(path);
 
         try {
             Flux<Path> dirPaths = Flux.fromStream(Files.list(directoryPath));
             dirPaths.filter(Files::isDirectory)
+                    .filter(dirPath -> dirPath.toFile().getName().equals(owner))
                     .flatMap(dirPath -> {
                         List<Path> filesToDelete = new ArrayList<>();
                         return walkFilesFlux(dirPath)
@@ -104,9 +92,11 @@ public class ProcessManagingService {
                                     for (Path file : filesToDelete) {
                                         AtomicBoolean hasFiles = new AtomicBoolean(false);
                                         try {
-                                            Files.deleteIfExists(file);
-                                            hasFiles.set(true);
-                                            log.info("File deleted: {}", file);
+                                            if (file.toString().endsWith(".ts") || file.toString().endsWith(".jpg")) {
+                                                Files.deleteIfExists(file);
+                                                hasFiles.set(true);
+                                                log.info("File deleted: {}", file);
+                                            }
                                         } catch (IOException e) {
                                             log.error("Failed to delete file {}", file, e);
                                         }
@@ -124,42 +114,11 @@ public class ProcessManagingService {
         }
     }
 
-
-    public void deleteOldThumbnails(String thumbnailPath) {
-        Flux.defer(() -> Mono.justOrEmpty(new File(thumbnailPath).listFiles()))
-                .flatMap(Flux::fromArray)
-                .filter(file -> file.isFile() && file.getName().endsWith(".jpg"))
-                .flatMap(file ->
-                        Mono.fromCallable(() -> {
-                                    Path filePath = Paths.get(file.toURI());
-                                    BasicFileAttributes attributes = Files.readAttributes(filePath, BasicFileAttributes.class);
-                                    Instant fileCreationTime = attributes.creationTime().toInstant();
-                                    Instant currentInstant = Instant.now();
-                                    return Duration.between(fileCreationTime, currentInstant);
-                                })
-                                .onErrorResume(e -> {
-                                    log.error("Error while reading file attributes: {}", e.getMessage(), e);
-                                    return Mono.empty();
-                                })
-                                .filter(duration -> duration.toMinutes() >= 1)
-                                .flatMap(duration ->
-                                        Mono.fromRunnable(() -> {
-                                            if (file.delete()) {
-                                                log.info("Thumbnail deleted: " + file.getName());
-                                            } else {
-                                                log.error("Failed to delete: " + file.getName());
-                                            }
-                                        })
-                                ))
-                .subscribeOn(Schedulers.boundedElastic())
-                .subscribe();
-    }
-
     // 방송종료 시 남아있는 모든 .ts 파일삭제
-    private void deleteAllTsFiles(Path dirPath) {
+    private void deleteAllTsAndJpgFiles(Path dirPath) {
         try {
             Files.walk(dirPath)
-                    .filter(file -> file.toString().endsWith(".ts"))
+                    .filter(file -> file.toString().endsWith(".ts") || file.toString().endsWith(".jpg"))
                     .forEach(file -> {
                         try {
                             Files.deleteIfExists(file);
@@ -173,7 +132,23 @@ public class ProcessManagingService {
         }
     }
 
+    private String createThumbnailPath(String owner) {
+        Path directory = Paths.get(path).resolve(owner);
+
+        // "thumbnail" 폴더 생성
+        Path thumbnailDirectory = directory.resolve("thumbnail");
+        if (!Files.exists(thumbnailDirectory)) {
+            try {
+                Files.createDirectories(thumbnailDirectory);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return thumbnailDirectory.toAbsolutePath().toString();
+    }
+
     public Mono<Long> startProcess(String owner){
+        deleteFile.scheduleAtFixedRate(() -> this.deleteOldTsAndJpgFiles(owner), delete_interval, delete_interval, TimeUnit.MINUTES);
         // isAlive() - 하위 프로세스가 Process활성 상태인지 테스트
         if(processMap.containsKey(owner) && processMap.get(owner).isAlive()){
             // 하위 프로세스를 종료
@@ -182,7 +157,7 @@ public class ProcessManagingService {
         }
         // 파일탐색을 다시 시작
         stopSearching.set(false);
-        String thumbnailOutputPath = Paths.get(thumbnailPath, owner + "_thumbnail_%04d.jpg").toString();
+        String thumbnailOutputPath = Paths.get(createThumbnailPath(owner), owner + "_thumbnail_%04d.jpg").toString();
         String command = String.format(template, address + "/" + owner, owner + "_%v/data%d.ts", owner + "_%v.m3u8", thumbnailOutputPath);
 
         ProcessBuilder processBuilder = new ProcessBuilder();
@@ -246,7 +221,7 @@ public class ProcessManagingService {
                         }
                         // 종료된 프로세스 폴더의 .ts 파일 모두 삭제
                         Path ownerDirectory = Paths.get(path, owner);
-                        deleteAllTsFiles(ownerDirectory);
+                        deleteAllTsAndJpgFiles(ownerDirectory);
                         // 파일탐색을 중지
                         stopSearching.set(true);
                     });
