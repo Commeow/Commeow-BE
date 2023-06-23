@@ -3,6 +3,7 @@ package com.example.contentservice.service;
 import com.example.contentservice.domain.Points;
 import com.example.contentservice.dto.ChatDto;
 import com.example.contentservice.dto.point.DonationDto;
+import com.example.contentservice.dto.point.DonationResponseDto;
 import com.example.contentservice.repository.MemberRepository;
 import com.example.contentservice.repository.PointRepository;
 import lombok.RequiredArgsConstructor;
@@ -55,7 +56,6 @@ public class ChatService {
     }
 
     public void sendMessage(ChatDto chatDto) {
-        log.info("sendMessage");
         Flux.fromIterable(participants.get(chatDto.getChattingAddress()))
                 .doOnNext(ea -> {
                     ea.route("")
@@ -78,11 +78,11 @@ public class ChatService {
                 .tryEmitNext(count);
     }
 
-    public Mono<DonationDto> donation(DonationDto donationDto) {
+    public Mono<DonationResponseDto> donation(DonationDto donationDto) {
         return usePoint(donationDto);
     }
 
-    public Mono<DonationDto> usePoint(DonationDto donationDto) {
+    public Mono<DonationResponseDto> usePoint(DonationDto donationDto) {
         return memberRepository.findByNickname(donationDto.getStreamer())
                 .switchIfEmpty(Mono.error(() -> new NoSuchElementException("존재하지 않는 사용자입니다.")))
                 .flatMap(streamer -> pointRepository.findByNickname(donationDto.getNickname())
@@ -107,7 +107,13 @@ public class ChatService {
                                                 .flatMap(savedMemberPoints -> {
                                                     return pointRepository.save(updatedStreamerPoints)
                                                             .flatMap(res -> sendDonation(donationDto))
-                                                            .thenReturn(donationDto);
+                                                            .thenReturn(DonationResponseDto.builder()
+                                                                    .type(donationDto.getType())
+                                                                    .nickname(donationDto.getNickname())
+                                                                    .points(donationDto.getPoints())
+                                                                    .remainPoints(savedMemberPoints.getPoints())
+                                                                    .message(donationDto.getMessage())
+                                                                    .build());
                                                 });
                                     });
                         }));
