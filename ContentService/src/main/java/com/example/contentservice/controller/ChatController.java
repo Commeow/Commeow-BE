@@ -1,6 +1,7 @@
 package com.example.contentservice.controller;
 
 import com.example.contentservice.dto.ChatDto;
+import com.example.contentservice.dto.point.DonationDto;
 import com.example.contentservice.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +38,11 @@ public class ChatController {
     @MessageMapping("counting")
     Flux<Integer> stream(String chattingAddress){
         return chatService.stream(chattingAddress);
+    }
+
+    @MessageMapping("donation")
+    Mono<DonationDto> donation(DonationDto donationDto){
+        return chatService.donation(donationDto);
     }
 }
 
