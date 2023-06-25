@@ -83,6 +83,10 @@ public class ChatService {
     }
 
     public Mono<DonationResponseDto> usePoint(DonationDto donationDto) {
+        if (donationDto.getStreamer().equals(donationDto.getNickname())) {
+            return Mono.error(() -> new IllegalArgumentException("스트리머는 자신의 방송에 후원할 수 없습니다. 다른 스트리머를 응원해보세요!"));
+        }
+
         return memberRepository.findByNickname(donationDto.getStreamer())
                 .switchIfEmpty(Mono.error(() -> new NoSuchElementException("존재하지 않는 사용자입니다.")))
                 .flatMap(streamer -> pointRepository.findByNickname(donationDto.getNickname())
