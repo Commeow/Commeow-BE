@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Getter
@@ -17,19 +18,19 @@ public class ChannelResponseDto {
     private Long channelId;
     private String streamer;
     private String title;
-    private List<String> thumbnailUrls;
+    private List<File> thumbnailFiles;
 
 
     public ChannelResponseDto(Channel channel) {
         this.channelId = channel.getId();
         this.streamer = channel.getStreamer();
         this.title = channel.getTitle();
-        this.thumbnailUrls = findThumbnailUrls(channel);
+        this.thumbnailFiles = findThumbnailFiles(channel);
     }
 
-    private List<String> findThumbnailUrls(Channel channel) {
+    private List<File> findThumbnailFiles(Channel channel) {
         String owner = channel.getStreamer();
-        String thumbnailPath = String.format("C:\\Program Files\\ffmpeg\\bin\\%s\\thumbnail\\", owner);
+        String thumbnailPath = String.format("/home/streams/%s/thumbnail/", owner);
 
         // 일치하는 파일 이름을 필터링하는 FilenameFilter 생성
         FilenameFilter filter = new FilenameFilter() {
@@ -43,14 +44,7 @@ public class ChannelResponseDto {
         File directory = new File(thumbnailPath);
         File[] files = directory.listFiles(filter);
 
-        // 썸네일 URL 목록 생성
-        List<String> thumbnailUrls = new ArrayList<>();
-        if (files != null) {
-            for (File file : files) {
-                String thumbnailUrl = String.format("file:///%s", file.getAbsolutePath());
-                thumbnailUrls.add(thumbnailUrl);
-            }
-        }
-        return thumbnailUrls;
+        // 썸네일 파일 목록 반환
+        return files != null ? Arrays.asList(files) : new ArrayList<>();
     }
 }
