@@ -100,7 +100,7 @@ public class ChatService {
                         .switchIfEmpty(Mono.error(() -> new NoSuchElementException("존재하지 않는 사용자입니다.")))
                         .flatMap(memberPoints -> {
                             if (memberPoints.getPoints() - donationDto.getPoints() < 0) {
-                                return Mono.error(() -> new NoSuchElementException("포인트가 부족합니다."));
+                                return Mono.error(() -> new NoSuchElementException("츄르가 부족합니다."));
                             }
 
                             return databaseClient.sql("SELECT * FROM points WHERE user_id = :userId FOR UPDATE")
