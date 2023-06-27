@@ -72,29 +72,34 @@ public class MemberService {
                 .flatMap(member -> {
                     TokenDto tokenDto = jwtUtil.createAllToken(member.getUserId(), member.getNickname());
                     return refreshTokenRepository.findByUserId(loginRequestDto.getUserId())
-                            .switchIfEmpty(
-                                    refreshTokenRepository
-                                            .save(new RefreshToken(tokenDto.getRefreshToken(), loginRequestDto.getUserId()))
-                                            .onErrorResume(exception -> {
-                                                return Mono.error(new RuntimeException("회원 정보 저장 오류"));
-                                            }))
+                            .switchIfEmpty(refreshTokenRepository
+                                    .save(new RefreshToken(tokenDto.getRefreshToken(), loginRequestDto.getUserId()))
+                                    .onErrorResume(exception -> Mono.error(new RuntimeException("회원 정보 저장 오류"))))
                             .flatMap(refreshToken -> {
-                                if (refreshToken.getRefreshToken().equals(tokenDto.getRefreshToken()))
+                                if (refreshToken.getRefreshToken().equals(tokenDto.getRefreshToken())) {
                                     return Mono.just(refreshToken);
-                                else
+                                } else {
                                     return refreshTokenRepository.save(refreshToken.updateToken(tokenDto.getRefreshToken()))
-                                            .onErrorResume(exception -> {
-                                                return Mono.error(new RuntimeException("회원 정보 저장 오류"));
-                                            });
-                            }).map(refreshToken -> {
+                                            .onErrorResume(exception -> Mono.error(new RuntimeException("회원 정보 저장 오류")));
+                                }
+                            })
+                            .flatMap(refreshToken -> {
                                 HttpHeaders header = new HttpHeaders();
-
                                 header.add(JwtUtil.ACCESS_TOKEN, tokenDto.getAccessToken());
                                 header.add(JwtUtil.REFRESH_TOKEN, tokenDto.getRefreshToken());
-                                return ResponseEntity.ok().headers(header).body(new LoginResponseDto(member.getUserId(), member.getNickname(), member.getStreamKey()));
+
+                                return pointRepository.findByUserId(loginRequestDto.getUserId())
+                                        .map(points -> new LoginResponseDto(
+                                                member.getUserId(),
+                                                member.getNickname(),
+                                                member.getStreamKey(),
+                                                points.getPoints()
+                                        ))
+                                        .map(loginResponseDto -> ResponseEntity.ok().headers(header).body(loginResponseDto));
                             });
                 });
     }
+
 
     public Mono<ResponseEntity<String>> logout(String userId) {
         return refreshTokenRepository
