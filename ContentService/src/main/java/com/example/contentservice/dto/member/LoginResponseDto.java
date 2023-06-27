@@ -11,4 +11,5 @@ public class LoginResponseDto {
     private String userId;
     private String nickname;
     private String streamKey;
+    private int points;
 }
