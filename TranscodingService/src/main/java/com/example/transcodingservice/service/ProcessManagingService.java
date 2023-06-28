@@ -38,7 +38,6 @@ public class ProcessManagingService {
     @Value("${stream.directory}")
     private String path;
 
-
     // 동시성 떄문에 사용
     private final ConcurrentHashMap<String, Process> processMap = new ConcurrentHashMap<>();
     private static final long delete_interval = 1L;
@@ -118,7 +117,7 @@ public class ProcessManagingService {
     private void deleteAllTsAndJpgFiles(Path dirPath) {
         try {
             Files.walk(dirPath)
-                    .filter(file -> file.toString().endsWith(".ts") || file.toString().endsWith(".jpg"))
+                    .filter(file -> file.toString().endsWith(".ts") || file.toString().endsWith(".jpg") || file.toString().endsWith(".m3u8"))
                     .forEach(file -> {
                         try {
                             Files.deleteIfExists(file);

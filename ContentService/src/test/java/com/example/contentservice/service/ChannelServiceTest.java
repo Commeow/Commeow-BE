@@ -39,10 +39,13 @@ class ChannelServiceTest {
     private final String INVALID_STREAM_KEY = "invalidStreamKey";
 
     private Channel EXISTING_CHANNEL;
+
     @InjectMocks
     private ChannelService channelService;
+
     @Mock
     private ChannelRepository channelRepository;
+
     @Mock
     private MemberRepository memberRepository;
 

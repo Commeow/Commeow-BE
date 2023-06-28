@@ -50,20 +50,20 @@ public abstract class RtmpServer implements CommandLineRunner {
     @Override
     public void run(String... args) {
         DisposableServer server = TcpServer.create()
-                .port(1935)
-                .doOnBound(disposableServer ->
-                        log.info("RTMP 서버가 포트 {} 에서 시작됩니다.", disposableServer.port()))
-                .doOnConnection(connection -> connection
-                        .addHandlerLast(getInboundConnectionLogger())
-                        .addHandlerLast(getHandshakeHandler())
-                        .addHandlerLast(getChunkDecoder())
-                        .addHandlerLast(getChunkEncoder())
-                        .addHandlerLast(getRtmpMessageHandler()))
-                .option(ChannelOption.SO_BACKLOG, 128)
-                .childOption(ChannelOption.SO_KEEPALIVE, true)
-                .handle((in, out) -> in
-                        .receiveObject()
-                        .cast(Stream.class)
+                        .port(1935)
+                        .doOnBound(disposableServer ->
+                                log.info("RTMP 서버가 포트 {} 에서 시작됩니다.", disposableServer.port()))
+                        .doOnConnection(connection -> connection
+                                .addHandlerLast(getInboundConnectionLogger())
+                                .addHandlerLast(getHandshakeHandler())
+                                .addHandlerLast(getChunkDecoder())
+                                .addHandlerLast(getChunkEncoder())
+                                .addHandlerLast(getRtmpMessageHandler()))
+                        .option(ChannelOption.SO_BACKLOG, 128)
+                        .childOption(ChannelOption.SO_KEEPALIVE, true)
+                        .handle((in, out) -> in
+                                .receiveObject()
+                                .cast(Stream.class)
                         .flatMap(stream -> {
                             return webClient
                                     .post()

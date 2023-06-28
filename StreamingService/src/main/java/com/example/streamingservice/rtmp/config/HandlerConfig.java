@@ -17,10 +17,12 @@ public class HandlerConfig {
     public WebClient getWebClient() {
         return WebClient.create();
     }
+
     @Bean
     public StreamContext streamContext() {
         return new StreamContext();
     }
+
     @Bean
     @Scope(value = "prototype")
     public ChunkDecoder chunkDecoder() {
@@ -44,12 +46,12 @@ public class HandlerConfig {
     public InboundConnectionLogger inboundConnectionLogger() {
         return new InboundConnectionLogger();
     }
+
     @Bean
     @Scope(value = "prototype")
     public RtmpMessageHandler rtmpMessageHandler() {
         return new RtmpMessageHandler(streamContext());
     }
-
 
     // Injection of prototypes to singleton
     @Bean
