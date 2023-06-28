@@ -1,5 +1,6 @@
 package com.example.contentservice.domain;
 
+import com.example.contentservice.dto.mypage.ChannelInfoDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,6 +35,11 @@ public class Channel {
 
     public Channel channelOff() {
         this.onAir = false;
+        return this;
+    }
+
+    public Channel changeInfo(ChannelInfoDto infoDto) {
+        this.title = infoDto.getTitle();
         return this;
     }
 }
