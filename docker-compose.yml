@@ -1,0 +1,46 @@
+version: "3.8"
+services:
+  content-server:
+    build:
+      context: ./ContentService
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+      - "6565:6565"
+    links:
+      - redis
+    depends_on:
+      - redis
+    networks:
+      - commeow-network
+    volumes:
+      - stream-volume:/home/streams
+
+  redis:
+    image: "redis"
+    networks:
+      - commeow-network
+
+#  streaming-server:
+#    build:
+#      context: ./StreamingService
+#      dockerfile: Dockerfile
+#    ports:
+#      - "1935:1935"
+#    depends_on:
+#      - content-server
+
+  transcoding-server:
+    build:
+       context: ./TranscodingService
+       dockerfile: Dockerfile
+    ports:
+      - "8083:8083"
+    volumes:
+      - stream-volume:/home/streams
+
+networks:
+  commeow-network:
+
+volumes:
+  stream-volume:
