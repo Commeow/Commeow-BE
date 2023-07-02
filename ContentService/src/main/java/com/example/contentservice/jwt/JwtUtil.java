@@ -80,8 +80,8 @@ public class JwtUtil {
                 .flatMap((valid) -> {
                     if (!valid)
                         return Mono.just(false);
-                    else {
-                        return refreshTokenRepository
+
+                    return refreshTokenRepository
                                 .existsByUserId(getUserInfoFromToken(token))
                                 .flatMap((exists) -> {
                                     if (exists) {
@@ -92,7 +92,6 @@ public class JwtUtil {
                                                 });
                                     } else return Mono.just(false);
                                 });
-                    }
                 });
     }
 

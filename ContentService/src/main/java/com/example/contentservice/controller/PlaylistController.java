@@ -14,7 +14,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @RestController
-@Slf4j
 public class PlaylistController {
     @Value("${stream.directory}")
     private String path;
@@ -41,7 +40,7 @@ public class PlaylistController {
 
         // 경로조합 - 고정된 루트 경로에 부분 경로 추가(공통부분 경로 정의할 때 유용)
         Path ans = file.resolve(fileName);
-        log.info(ans.toAbsolutePath().toString());
+
         if (!Files.exists(ans)) {
             response.setStatusCode(HttpStatus.NOT_FOUND);
             return zeroCopyResponse.setComplete();

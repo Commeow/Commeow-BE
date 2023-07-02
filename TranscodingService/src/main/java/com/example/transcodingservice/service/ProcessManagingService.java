@@ -63,7 +63,6 @@ public class ProcessManagingService {
             return;
         }
 
-        log.info("Deleting .ts and .jpg files ({}) ...", owner);
         Path directoryPath = Paths.get(path);
 
         try {
@@ -94,7 +93,6 @@ public class ProcessManagingService {
                                             if (file.toString().endsWith(".ts") || file.toString().endsWith(".jpg")) {
                                                 Files.deleteIfExists(file);
                                                 hasFiles.set(true);
-                                                log.info("File deleted: {}", file);
                                             }
                                         } catch (IOException e) {
                                             log.error("Failed to delete file {}", file, e);

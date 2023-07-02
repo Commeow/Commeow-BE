@@ -15,7 +15,6 @@ import java.util.NoSuchElementException;
 public class GlobalExceptionHandler {
     @ExceptionHandler( {IllegalArgumentException.class, NoSuchElementException.class, RuntimeException.class, AuthenticationException.class, UsernameNotFoundException.class})
     public Mono<ResponseEntity<String>> handleException(Exception e){
-        log.debug("exception handler: " + e);
         return Mono.just(ResponseEntity.badRequest().body(e.getMessage()));
     }
 }

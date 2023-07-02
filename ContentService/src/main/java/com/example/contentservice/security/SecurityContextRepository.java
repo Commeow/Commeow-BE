@@ -38,7 +38,10 @@ public class SecurityContextRepository implements ServerSecurityContextRepositor
                                 if (valid)
                                     return this.authenticationManager.authenticate(accessAuth).map(SecurityContextImpl::new);
                                 else {
-                                    return Mono.justOrEmpty(exchange.getRequest().getHeaders().getFirst(JwtUtil.REFRESH_TOKEN))
+                                    if (exchange.getRequest().getHeaders().getFirst(JwtUtil.REFRESH_TOKEN) == null)
+                                        return Mono.error(new RuntimeException("Refresh 토큰을 보내주세요."));
+
+                                    return Mono.just(exchange.getRequest().getHeaders().getFirst(JwtUtil.REFRESH_TOKEN))
                                             .filter(refreshHeader -> refreshHeader.startsWith("Bearer"))
                                             .flatMap(refreshHeader -> {
                                                 String refreshToken = refreshHeader.substring(7);
@@ -55,8 +58,7 @@ public class SecurityContextRepository implements ServerSecurityContextRepositor
                                                                                         JwtUtil.ACCESS_TOKEN));
                                                                 return this.authenticationManager.authenticate(refreshAuth)
                                                                         .map(SecurityContextImpl::new);
-                                                            } else
-                                                                return Mono.error(new RuntimeException("토큰이 없습니다."));
+                                                            } else return Mono.error(new RuntimeException("유효한 토큰이 없습니다."));
                                                         });
                                             });
                                 }
