@@ -181,7 +181,7 @@ public class MemberServiceTest {
         expectedHeaders.add(JwtUtil.ACCESS_TOKEN, "mockAccessToken");
         expectedHeaders.add(JwtUtil.REFRESH_TOKEN, USER1_UPDATEDTOKEN.getRefreshToken());
 
-        LoginResponseDto expectedResponse = new LoginResponseDto("user1", "nickname1", "streamKey1");
+        LoginResponseDto expectedResponse = new LoginResponseDto("user1", "nickname1", "streamKey1", 100);
 
         StepVerifier.create(memberService.login(loginRequestDto))
                 .assertNext(responseEntity -> {
@@ -213,7 +213,7 @@ public class MemberServiceTest {
         expectedHeaders.add(JwtUtil.ACCESS_TOKEN, "mockAccessToken");
         expectedHeaders.add(JwtUtil.REFRESH_TOKEN, USER1_REFRESHTOKEN.getRefreshToken());
 
-        LoginResponseDto expectedResponse = new LoginResponseDto("user1", "nickname1", "streamKey1");
+        LoginResponseDto expectedResponse = new LoginResponseDto("user1", "nickname1", "streamKey1", 100);
 
         StepVerifier.create(memberService.login(loginRequestDto))
                 .assertNext(responseEntity -> {

@@ -19,6 +19,7 @@ project(':ContentService') {
         //redis
         testImplementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'
         implementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'
+        implementation 'org.redisson:redisson:3.16.2'
 
         //jwt
         implementation 'io.jsonwebtoken:jjwt-api:0.11.1'

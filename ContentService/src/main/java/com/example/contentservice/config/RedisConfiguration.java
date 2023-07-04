@@ -1,6 +1,9 @@
 package com.example.contentservice.config;
 
 import com.example.contentservice.domain.RefreshToken;
+import org.redisson.Redisson;
+import org.redisson.api.RedissonClient;
+import org.redisson.config.Config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,6 +30,14 @@ public class RedisConfiguration {
         return new LettuceConnectionFactory(host, port);
     }
 
+    @Bean(destroyMethod = "shutdown")
+    public RedissonClient redissonClient() {
+        Config config = new Config();
+        String address = "redis://" + host + ":6379";
+        config.useSingleServer().setAddress(address);
+
+        return Redisson.create(config);
+    }
 
     @Bean
     public ReactiveRedisTemplate<String, RefreshToken> refreshTokenDefine(ReactiveRedisConnectionFactory factory) {
