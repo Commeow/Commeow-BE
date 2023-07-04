@@ -229,24 +229,20 @@ public class ChunkDecoder extends ReplayingDecoder<ChunkDecoder.DecodeState> {
     }
 
     private void handleWindowAckSize(ByteBuf payload) {
-        log.info("Changing acknowledgement size");
         ackSize = payload.readInt();
         payload.release();
     }
 
     private void handleChunkSize(ByteBuf payload) {
-        log.info("Changing chunk size");
         clientChunkSize = payload.readInt();
         payload.release();
     }
 
     private void handleAck(ByteBuf payload) {
-        log.info("Sequence {} received", payload.readInt());
         payload.release();
     }
 
     private void handleAbort(ByteBuf payload) {
-        log.info("Abort message {}", payload.readInt());
         payload.release();
     }
 }

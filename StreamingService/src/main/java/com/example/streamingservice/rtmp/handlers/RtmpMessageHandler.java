@@ -99,15 +99,15 @@ public class RtmpMessageHandler extends MessageToMessageDecoder<RtmpMessage> {
         this.currentSessionStream = app;
 
         // window acknowledgement size
-        log.info("Sending window ack size message");
+        //log.info("Sending window ack size message");
         ctx.writeAndFlush(MessageProvider.setWindowAcknowledgement(RTMP_DEFAULT_OUTPUT_ACK_SIZE));
 
         // set peer bandwidth
-        log.info("Sending set peer bandwidth message");
+        //log.info("Sending set peer bandwidth message");
         ctx.writeAndFlush(MessageProvider.setPeerBandwidth(RTMP_DEFAULT_OUTPUT_ACK_SIZE, 2));
 
         // set chunk size
-        log.info("Sending set chunk size message");
+        //log.info("Sending set chunk size message");
         ctx.writeAndFlush(MessageProvider.setChunkSize(RTMP_DEFAULT_CHUNK_SIZE));
 
         List<Object> result = new ArrayList<>();
@@ -161,8 +161,6 @@ public class RtmpMessageHandler extends MessageToMessageDecoder<RtmpMessage> {
     }
 
     private void onPlay(ChannelHandlerContext ctx, List<Object> message) {
-        log.info("Stream play");
-
         // String secret = (String) message.get(3);
 
         Stream stream = context.getStream(currentSessionStream);
@@ -191,11 +189,8 @@ public class RtmpMessageHandler extends MessageToMessageDecoder<RtmpMessage> {
     }
 
     private void onClose(ChannelHandlerContext ctx) {
-        log.info("Stream close");
-
         Stream stream = context.getStream(currentSessionStream);
         if (stream == null) {
-            log.info("Stream doesn't exist");
             ctx.writeAndFlush(MessageProvider.onStatus("status", "NetStream.Unpublish.Success", "Stop publishing"));
         } else if (ctx.channel().id().equals(stream.getPublisher().id())) {
             ctx.writeAndFlush(MessageProvider.onStatus("status", "NetStream.Unpublish.Success", "Stop publishing"));
@@ -230,7 +225,6 @@ public class RtmpMessageHandler extends MessageToMessageDecoder<RtmpMessage> {
     private void handleData(ByteBuf payload) {
         List<Object> decoded = Amf0Rules.decodeAll(payload);
         String dataType = (String) decoded.get(0);
-        log.info("Handling data message {}", dataType);
         if ("@setDataFrame".equals(dataType)) {
             // handle metadata
             Map<String, Object> metadata = (Map<String, Object>) decoded.get(2);

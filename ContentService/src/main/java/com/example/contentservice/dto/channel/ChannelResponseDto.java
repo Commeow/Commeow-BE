@@ -7,9 +7,9 @@ import lombok.NoArgsConstructor;
 
 import java.io.File;
 import java.io.FilenameFilter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.*;
 
 @Getter
 @NoArgsConstructor
@@ -18,8 +18,7 @@ public class ChannelResponseDto {
     private Long channelId;
     private String streamer;
     private String title;
-    private List<File> thumbnailFiles;
-
+    private List<Map<String, String>> thumbnailFiles;
 
     public ChannelResponseDto(Channel channel) {
         this.channelId = channel.getId();
@@ -28,7 +27,7 @@ public class ChannelResponseDto {
         this.thumbnailFiles = findThumbnailFiles(channel);
     }
 
-    private List<File> findThumbnailFiles(Channel channel) {
+    private List<Map<String, String>> findThumbnailFiles(Channel channel) {
         String owner = channel.getStreamer();
         String thumbnailPath = String.format("/home/streams/%s/thumbnail/", owner);
 
@@ -44,7 +43,22 @@ public class ChannelResponseDto {
         File directory = new File(thumbnailPath);
         File[] files = directory.listFiles(filter);
 
-        // 썸네일 파일 목록 반환
-        return files != null ? Arrays.asList(files) : new ArrayList<>();
+        List<Map<String, String>> thumbnailFiles = new ArrayList<>();
+        if (files != null) {
+            for (File file : files) {
+                Map<String, String> fileInfo = new HashMap<>();
+                fileInfo.put("fileName", file.getName());
+
+                try {
+                    byte[] fileImage = Files.readAllBytes(file.toPath());
+                    String encodedFileImage = Base64.getEncoder().encodeToString(fileImage);
+                    fileInfo.put("fileImg", encodedFileImage);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                thumbnailFiles.add(fileInfo);
+            }
+        }
+        return thumbnailFiles;
     }
 }

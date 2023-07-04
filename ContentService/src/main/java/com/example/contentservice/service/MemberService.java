@@ -37,6 +37,9 @@ public class MemberService {
                     if (exists) {
                         return Mono.error(new IllegalArgumentException("중복된 아이디입니다."));
                     } else {
+                        if (!signupRequestDto.getNickname().matches("^[a-zA-Z0-9]+$"))
+                            return Mono.error(new IllegalArgumentException("닉네임은 영어 알파벳(대소문자)와 숫자로만 구성해야 합니다."));
+
                         return memberRepository.existsByNickname(signupRequestDto.getNickname())
                                 .flatMap(duplicated -> {
                                     if (duplicated) {
