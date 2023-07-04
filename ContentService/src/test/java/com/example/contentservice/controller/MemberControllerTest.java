@@ -76,7 +76,7 @@ public class MemberControllerTest {
     @DisplayName("로그인 POST 성공 테스트")
     public void testLogin() {
         LoginRequestDto loginRequestDto = new LoginRequestDto("user1", "password1");
-        LoginResponseDto loginResponseDto = new LoginResponseDto("user1", "nickname1", "streamKey1");
+        LoginResponseDto loginResponseDto = new LoginResponseDto("user1", "nickname1", "streamKey1", 100);
 
         HttpHeaders headers = new HttpHeaders();
         headers.add("Access_Token", "mockAccessToken");
