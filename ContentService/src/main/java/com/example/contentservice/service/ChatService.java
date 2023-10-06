@@ -115,6 +115,7 @@ public class ChatService {
                                                 .flatMap(streamerPoints -> {
                                                     Points updatedStreamerPoints = streamerPoints.addPoints(donationDto.getPoints());
                                                     return pointRepository.save(updatedStreamerPoints)
+                                                            .flatMap(res -> sendDonation(donationDto))
                                                             .thenReturn(DonationResponseDto.builder()
                                                                     .type(donationDto.getType())
                                                                     .nickname(donationDto.getNickname())
