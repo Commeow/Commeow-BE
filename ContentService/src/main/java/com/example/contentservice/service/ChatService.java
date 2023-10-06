@@ -8,8 +8,9 @@ import com.example.contentservice.repository.MemberRepository;
 import com.example.contentservice.repository.PointRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.messaging.rsocket.RSocketRequester;
-import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -17,6 +18,7 @@ import reactor.core.publisher.Sinks;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -27,7 +29,7 @@ public class ChatService {
     private final Map<String, Sinks.Many<Integer>> participantCountSinks = new ConcurrentHashMap<>();
     private final PointRepository pointRepository;
     private final MemberRepository memberRepository;
-    private final DatabaseClient databaseClient;
+    private final RedissonClient redissonClient;
 
     public void onConnect(RSocketRequester requester, String chattingAddress) {
         requester.rsocket()
@@ -83,39 +85,35 @@ public class ChatService {
     }
 
     public Mono<DonationResponseDto> usePoint(DonationDto donationDto) {
-        log.info("usePoint 진입");
-        if (donationDto.getStreamer().equals(donationDto.getNickname())) {
-            log.info("본인 후원 안됨");
-            return Mono.error(() -> new IllegalArgumentException("스트리머는 자신의 방송에 후원할 수 없습니다. 다른 스트리머를 응원해보세요!"));
-        }
+        String lockKey = "POINT_LOCK_" + donationDto.getStreamer();
+        final RLock lock = redissonClient.getLock(lockKey);
 
-        if (donationDto.getPoints() <= 0) {
-            log.info("0원 이하 후원 안됨");
-            return Mono.error(() -> new IllegalArgumentException("0원 이하는 후원할 수 없습니다."));
-        }
+        try {
+            if (!lock.tryLock(3, TimeUnit.SECONDS)) {
+                throw new IllegalArgumentException("락을 얻지 못했습니다.");
+            }
 
-        return memberRepository.findByNickname(donationDto.getStreamer())
-                .switchIfEmpty(Mono.error(() -> new NoSuchElementException("존재하지 않는 사용자입니다.")))
-                .flatMap(streamer -> pointRepository.findByNickname(donationDto.getNickname())
-                        .switchIfEmpty(Mono.error(() -> new NoSuchElementException("존재하지 않는 사용자입니다.")))
-                        .flatMap(memberPoints -> {
-                            if (memberPoints.getPoints() - donationDto.getPoints() < 0) {
-                                return Mono.error(() -> new NoSuchElementException("츄르가 부족합니다."));
-                            }
+            return memberRepository.findByNickname(donationDto.getStreamer())
+                    .switchIfEmpty(Mono.error(() -> new NoSuchElementException("존재하지 않는 사용자입니다.")))
+                    .flatMap(streamer -> pointRepository.findByNickname(donationDto.getNickname())
+                            .switchIfEmpty(Mono.error(new NoSuchElementException("포인트가 부족합니다.")))
+                            .flatMap(memberPoints -> {
+                                if (donationDto.getStreamer().equals(donationDto.getNickname())) {
+                                    return Mono.error(() -> new IllegalArgumentException("스트리머는 자신의 방송에 후원할 수 없습니다. 다른 스트리머를 응원해보세요!"));
+                                }
 
-                            return databaseClient.sql("SELECT * FROM points WHERE user_id = :userId FOR UPDATE")
-                                    .bind("userId", streamer.getUserId())
-                                    .fetch()
-                                    .one()
-                                    .flatMap(row -> {
-                                        Points updatedStreamerPoints = new Points(
-                                                (Long) row.get("id"),
-                                                (String) row.get("user_id"),
-                                                (int) row.get("points")
-                                        );
-                                        updatedStreamerPoints.addPoints(donationDto.getPoints());
-                                        return pointRepository.save(memberPoints.usePoints(donationDto.getPoints()))
-                                                .flatMap(savedMemberPoints -> {
+                                if (donationDto.getPoints() <= 0) {
+                                    return Mono.error(() -> new IllegalArgumentException("0원 이하는 후원할 수 없습니다."));
+                                }
+
+                                if (memberPoints.getPoints() - donationDto.getPoints() < 0) {
+                                    return Mono.error(() -> new NoSuchElementException("포인트가 부족합니다."));
+                                }
+
+                                return pointRepository.save(memberPoints.usePoints(donationDto.getPoints()))
+                                        .flatMap(savedMemberPoints -> pointRepository.findByUserId(streamer.getUserId())
+                                                .flatMap(streamerPoints -> {
+                                                    Points updatedStreamerPoints = streamerPoints.addPoints(donationDto.getPoints());
                                                     return pointRepository.save(updatedStreamerPoints)
                                                             .flatMap(res -> sendDonation(donationDto))
                                                             .thenReturn(DonationResponseDto.builder()
@@ -125,9 +123,22 @@ public class ChatService {
                                                                     .remainPoints(savedMemberPoints.getPoints())
                                                                     .message(donationDto.getMessage())
                                                                     .build());
-                                                });
-                                    });
-                        }));
+                                                }));
+                            }))
+                    .doFinally(signalType -> {
+                        if (lock.isLocked() && lock.isHeldByCurrentThread()) {
+                            log.info("doFinally: lock 해제");
+                            lock.unlock();
+                        }
+                    });
+        } catch (Exception e) {
+            throw new IllegalArgumentException(e);
+        } finally {
+            if (lock.isLocked() && lock.isHeldByCurrentThread()) {
+                log.info("finally: lock 해제");
+                lock.unlock();
+            }
+        }
     }
 
     public Mono<Void> sendDonation(DonationDto donationDto) {
