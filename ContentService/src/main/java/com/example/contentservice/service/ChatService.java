@@ -89,7 +89,7 @@ public class ChatService {
         final RLock lock = redissonClient.getLock(lockKey);
 
         try {
-            if (!lock.tryLock(3, TimeUnit.SECONDS)) {
+            if (!lock.tryLock(5, 30, TimeUnit.SECONDS)) {
                 throw new IllegalArgumentException("락을 얻지 못했습니다.");
             }
 
